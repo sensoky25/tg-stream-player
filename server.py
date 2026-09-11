@@ -353,8 +353,14 @@ def setup_bot_handlers():
     if not tg_client:
         return
 
-    @tg_client.on(events.NewMessage)
+    @tg_client.on(events.NewMessage(incoming=True))
     async def on_private_message(event: events.NewMessage.Event):
+        # Ignore outgoing messages (sent by the bot itself)
+        if event.out:
+            return
+        if bot_me and event.sender_id == bot_me.id:
+            return
+
         # Only process private messages sent to the bot
         if not event.is_private:
             return

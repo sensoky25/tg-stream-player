@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ file_name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .plyr {
+            width: 100%;
+            height: 100%;
+            --plyr-color-main: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <video id="player" playsinline controls preload="metadata">
+        <source src="{{ stream_url }}" type="{{ mime_type }}">
+    </video>
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.min.js"></script>
+    <script>
+        const player = new Plyr('#player', {
+            controls: [
+                'play-large', 'play', 'progress', 'current-time', 
+                'duration', 'mute', 'volume', 'captions', 'settings', 
+                'pip', 'airplay', 'fullscreen'
+            ],
+            keyboard: { focused: true, global: true }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.git
+.gitignore
+venv/
+*.session
+*.session-journal
+test_*.py
+check_bot.py
+run.bat

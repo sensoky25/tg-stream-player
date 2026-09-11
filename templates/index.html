@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram File Stream Dashboard & Tester</title>
+    <meta name="description" content="Stream any Telegram video directly on web players with HTTP 206 Partial Content.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-card-border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 45%);
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--bg-card-border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .brand-text h1 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        .hero {
+            text-align: center;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .hero h2 {
+            font-family: var(--font-display);
+            font-size: 2.75rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 30%, #a5b4fc 70%, #67e8f9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Stream Tester Card */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 24px;
+            padding: 2.25rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .tester-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .tester-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .input-group input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 0.9rem 1.25rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-launch {
+            background: var(--primary-gradient);
+            color: #fff;
+            border: none;
+            padding: 0 1.75rem;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+        }
+
+        /* Features / Workflow */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 18px;
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-3px);
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .icon-blue { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+        .icon-cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+        .icon-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+
+        .feature-box h3 {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .feature-box p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* API Spec table */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .api-table th, .api-table td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .api-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-method {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        code.endpoint {
+            font-family: monospace;
+            color: #38bdf8;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="brand">
+            <div class="brand-icon">
+                <i class="fa-brands fa-telegram"></i>
+            </div>
+            <div class="brand-text">
+                <h1>Telegram Stream Engine</h1>
+                <p>Direct HTTP 206 Streaming Service</p>
+            </div>
+        </a>
+
+        {% if bot_ready %}
+            <div class="status-badge status-online">
+                <span class="status-dot"></span>
+                <span>Bot Online & Ready</span>
+            </div>
+        {% else %}
+            <div class="status-badge status-warning">
+                <span class="status-dot"></span>
+                <span>Credentials Pending (.env)</span>
+            </div>
+        {% endif %}
+    </header>
+
+    <main>
+        <div class="hero">
+            <h2>Instant Telegram Video Streaming</h2>
+            <p>Stream high-definition Telegram media directly to modern web browsers with instantaneous seek times, zero disk latency, and passthrough bandwidth.</p>
+        </div>
+
+        <!-- Quick Video Tester -->
+        <div class="card">
+            <div class="tester-title">
+                <i class="fa-solid fa-play" style="color: var(--primary);"></i>
+                <span>Instant Stream Tester</span>
+            </div>
+            <p class="tester-desc">Enter the Message ID from your Bin Channel (or full Stream URL) to test video playback immediately in the built-in Web Player:</p>
+            <form onsubmit="handleTestStream(event)">
+                <div class="input-group">
+                    <input type="text" id="streamInput" placeholder="Enter Message ID (e.g. 104) or Stream URL..." required>
+                    <button type="submit" class="btn-launch">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span>Watch Now</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- How It Works Grid -->
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-icon icon-blue">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <h3>1. Send to Bot</h3>
+                <p>Forward or upload any video (.mp4, .mkv) or media document to your Telegram Bot.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon icon-cyan">
+                    <i class="fa-solid fa-link"></i>
+                </div>
+                <h3>2. Get Direct Links</h3>
+                <p>The bot immediately responds with direct streaming link, web player URL, and download link.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon icon-green">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h3>3. Stream Anywhere</h3>
+                <p>Supports HTTP 206 Range requests. Seamlessly seek forward or backward in any web player or VLC.</p>
+            </div>
+        </div>
+
+        <!-- API Endpoints Info -->
+        <div class="card">
+            <div class="tester-title">
+                <i class="fa-solid fa-code" style="color: var(--accent-cyan);"></i>
+                <span>API Endpoints Reference</span>
+            </div>
+            <p class="tester-desc">Standard endpoints exposed by this streaming server:</p>
+
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge-method">GET</span></td>
+                        <td><code class="endpoint">/stream/{id}.mp4</code></td>
+                        <td>Raw HTTP 206 Direct Video Stream (for HTML5 &lt;video&gt;, VLC, etc.)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge-method">GET</span></td>
+                        <td><code class="endpoint">/watch/{id}</code></td>
+                        <td>Full Web Player interface with metadata and controls</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge-method">GET</span></td>
+                        <td><code class="endpoint">/embed/{id}</code></td>
+                        <td>Minimalist player suitable for &lt;iframe&gt; embedding</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge-method">GET</span></td>
+                        <td><code class="endpoint">/api/info/{id}</code></td>
+                        <td>JSON metadata (file name, size, mime type, stream url)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        <p>Telegram File Stream Engine • Built with Telethon & Aiohttp</p>
+    </footer>
+
+    <script>
+        function handleTestStream(e) {
+            e.preventDefault();
+            const val = document.getElementById('streamInput').value.trim();
+            if (!val) return;
+            
+            // If user pasted a full URL
+            if (val.startsWith('http://') || val.startsWith('https://')) {
+                const match = val.match(/stream\/(\d+)/);
+                if (match) {
+                    window.location.href = '/watch/' + match[1];
+                    return;
+                }
+            }
+            
+            // If user entered a numeric ID
+            const numMatch = val.match(/\d+/);
+            if (numMatch) {
+                window.location.href = '/watch/' + numMatch[0];
+            } else {
+                alert('Please enter a valid Message ID (number) or Stream URL.');
+            }
+        }
+    </script>
+</body>
+</html>

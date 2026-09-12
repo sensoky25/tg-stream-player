@@ -1,18 +1,62 @@
 #!/bin/bash
 # ========================================================
-# Automated High-Speed Setup for Telegram Stream Server
-# OS: Ubuntu 22.04 / 24.04 (DigitalOcean Singapore)
+# Automated 1-Click Setup for Telegram Video Stream Server
+# OS: Ubuntu 22.04 / 24.04 (DigitalOcean, Linode, Hetzner, etc.)
 # ========================================================
 
 set -e
 
 echo "========================================================"
-echo "🚀 Starting High-Speed Stream Server Setup on Singapore VPS..."
+echo "🚀 Telegram Video Stream Server - 1-Click Auto Setup"
 echo "========================================================"
 
-# 1. Configure 2GB Swap (Prevents Out-Of-Memory on 512MB RAM VPS)
+# 1. Check or Configure .env
+mkdir -p /root/tg-stream-player
+cd /root/tg-stream-player
+
+if [ -f .env ]; then
+    echo "⚙️ Found existing .env configuration."
+    source .env || true
+fi
+
+if [ -z "$BOT_TOKEN" ] || [ -z "$API_ID" ] || [ -z "$BIN_CHANNEL" ] || [ -z "$FQDN" ]; then
+    echo ""
+    echo "📝 សូមបញ្ចូលព័ត៌មាន Bot និង Domain សម្រាប់ Server ថ្មីនេះ៖"
+    echo "--------------------------------------------------------"
+    
+    read -p "1. បញ្ចូល Domain/Subdomain (ឧទាហរណ៍: stream.nexkh.top): " INPUT_DOMAIN
+    INPUT_DOMAIN=${INPUT_DOMAIN#https://}
+    INPUT_DOMAIN=${INPUT_DOMAIN#http://}
+    INPUT_DOMAIN=${INPUT_DOMAIN%/}
+    
+    read -p "2. បញ្ចូល Telegram BOT_TOKEN (ពី @BotFather): " INPUT_BOT_TOKEN
+    read -p "3. បញ្ចូល API_ID (ពី my.telegram.org): " INPUT_API_ID
+    read -p "4. បញ្ចូល API_HASH (ពី my.telegram.org): " INPUT_API_HASH
+    read -p "5. បញ្ចូល Bin Channel ID (ឧទាហរណ៍: -1003909046470): " INPUT_BIN_CHANNEL
+    read -p "6. បញ្ចូល Email សម្រាប់ចុះឈ្មោះ SSL (ឧទាហរណ៍: admin@gmail.com): " INPUT_EMAIL
+    
+    cat << EOF > .env
+API_ID=${INPUT_API_ID}
+API_HASH=${INPUT_API_HASH}
+BOT_TOKEN=${INPUT_BOT_TOKEN}
+BIN_CHANNEL=${INPUT_BIN_CHANNEL}
+PORT=8080
+HOST=127.0.0.1
+FQDN=https://${INPUT_DOMAIN}
+EOF
+
+    DOMAIN="${INPUT_DOMAIN}"
+    SSL_EMAIL="${INPUT_EMAIL:-admin@${INPUT_DOMAIN}}"
+else
+    DOMAIN=$(echo "$FQDN" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+    SSL_EMAIL="admin@${DOMAIN}"
+fi
+
+echo "✅ Configuration saved for domain: ${DOMAIN}"
+
+# 2. Configure 2GB Swap (Prevents Out-Of-Memory on 512MB/1GB RAM VPS)
 if [ ! -f /swapfile ]; then
-    echo "📦 Creating 2GB Swap Memory..."
+    echo "📦 Configuring 2GB Swap Memory..."
     fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
     chmod 600 /swapfile
     mkswap /swapfile
@@ -21,25 +65,22 @@ if [ ! -f /swapfile ]; then
     echo "✅ Swap Memory configured."
 fi
 
-# 2. Update System and Install Essentials
-echo "🔄 Updating system packages and installing dependencies..."
+# 3. Update System & Install Essentials
+echo "🔄 Installing dependencies (Python, Nginx, Git, Certbot)..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y python3-pip python3-venv git nginx curl ufw build-essential libffi-dev
+apt-get install -y python3-pip python3-venv git nginx curl certbot python3-certbot-nginx build-essential libffi-dev
 
-# 3. Setup Project Directory
-echo "📁 Setting up Project in /root/tg-stream-player..."
-mkdir -p /root/tg-stream-player
-cd /root/tg-stream-player
-
-# Clone or pull repo
-if [ -d ".git" ]; then
-    git pull origin main
-else
-    git clone https://github.com/sensoky25/tg-stream-player.git .
+# 4. Clone or Update Repo
+if [ ! -f "server.py" ]; then
+    echo "📥 Cloning project from GitHub..."
+    git clone https://github.com/sensoky25/tg-stream-player.git temp_repo
+    cp -rn temp_repo/* .
+    cp -rn temp_repo/.* . 2>/dev/null || true
+    rm -rf temp_repo
 fi
 
-# 4. Create Virtual Environment & Install Requirements with C acceleration (cryptg)
+# 5. Virtual Environment & Python Requirements
 echo "🐍 Setting up Python Virtual Environment..."
 python3 -m venv venv
 source venv/bin/activate
@@ -47,20 +88,8 @@ pip install --upgrade pip
 pip install -r requirements.txt
 pip install cryptg || true
 
-# 5. Create .env Configuration
-echo "⚙️ Creating .env configuration..."
-cat << 'EOF' > .env
-API_ID=38606693
-API_HASH=4784d8963ea114bcd26dd59d84f997ad
-BOT_TOKEN=8445405147:AAH51CWfNzBADynBFcGV1yHb5gcraKCnlfY
-BIN_CHANNEL=-1003909046470
-PORT=8080
-HOST=127.0.0.1
-FQDN=https://stream.nexkh.top
-EOF
-
-# 6. Create Systemd Service (Auto-starts on reboot, runs 24/7)
-echo "🔧 Setting up Systemd Service (tgstream)..."
+# 6. Setup Systemd Service (24/7 Auto-restart)
+echo "🔧 Setting up Systemd 24/7 background service..."
 cat << 'EOF' > /etc/systemd/system/tgstream.service
 [Unit]
 Description=Telegram High-Speed Video Stream Server
@@ -83,51 +112,30 @@ systemctl daemon-reload
 systemctl enable tgstream
 systemctl restart tgstream
 
-# 7. Configure Nginx Reverse Proxy with SSL & Video Streaming Optimizations
-echo "🌐 Configuring Nginx Reverse Proxy for stream.nexkh.top (Port 80 & 443)..."
-
-mkdir -p /etc/nginx/ssl
-if [ ! -f /etc/nginx/ssl/stream.crt ]; then
-    echo "🔒 Generating SSL Certificate for Cloudflare Full Mode..."
-    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-        -keyout /etc/nginx/ssl/stream.key \
-        -out /etc/nginx/ssl/stream.crt \
-        -subj "/CN=stream.nexkh.top"
-fi
-
-cat << 'EOF' > /etc/nginx/sites-available/stream.nexkh.top
+# 7. Configure Nginx with Video Streaming Optimizations
+echo "🌐 Configuring Nginx Reverse Proxy for ${DOMAIN}..."
+cat << EOF > /etc/nginx/sites-available/${DOMAIN}
 server {
     listen 80;
     listen [::]:80;
-    listen 443 ssl default_server;
-    listen [::]:443 ssl default_server;
-    server_name stream.nexkh.top;
+    server_name ${DOMAIN};
 
-    ssl_certificate /etc/nginx/ssl/stream.crt;
-    ssl_certificate_key /etc/nginx/ssl/stream.key;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-
-    # Maximum file upload/request buffer
     client_max_body_size 0;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
 
-        # WebSocket & Streaming Headers
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
 
-        # HTTP 206 Partial Content & Video Seeking Support
-        proxy_set_header Range $http_range;
-        proxy_set_header If-Range $http_if_range;
+        proxy_set_header Range \$http_range;
+        proxy_set_header If-Range \$http_if_range;
 
-        # Disable Buffering for Instant Zero-Latency Video Streaming
         proxy_buffering off;
         proxy_request_buffering off;
         proxy_read_timeout 3600s;
@@ -136,17 +144,25 @@ server {
 }
 EOF
 
-ln -sf /etc/nginx/sites-available/stream.nexkh.top /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/${DOMAIN} /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
 systemctl restart nginx
 
-# 8. Firewall Configuration
-ufw allow 'Nginx Full' || true
+# 8. Obtain Official Let's Encrypt SSL Certificate
+echo "🔒 Securing ${DOMAIN} with Let's Encrypt SSL..."
+certbot --nginx -d "${DOMAIN}" --non-interactive --agree-tos --email "${SSL_EMAIL}" --redirect || {
+    echo "⚠️ Certbot could not verify immediately. Please ensure DNS A-record points to this VPS IP."
+}
+
+# 9. Firewall
+ufw allow 80/tcp || true
+ufw allow 443/tcp || true
 ufw allow 22/tcp || true
 
 echo "========================================================"
 echo "🎉 SETUP COMPLETED SUCCESSFULLY!"
-echo "📍 Server IP: 157.245.201.238 (Singapore)"
-echo "🚀 Status: tgstream service is RUNNING 24/7"
+echo "📍 Domain: https://${DOMAIN}"
+echo "🚀 Status: Running 24/7 under systemd (tgstream.service)"
+echo "⚡ Cloudflare Tip: Set DNS Proxy to 'DNS only' (Gray Cloud) for max speed!"
 echo "========================================================"

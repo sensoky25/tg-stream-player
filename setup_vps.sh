@@ -83,13 +83,30 @@ systemctl daemon-reload
 systemctl enable tgstream
 systemctl restart tgstream
 
-# 7. Configure Nginx Reverse Proxy with Video Streaming Optimizations
-echo "🌐 Configuring Nginx Reverse Proxy for stream.nexkh.top..."
+# 7. Configure Nginx Reverse Proxy with SSL & Video Streaming Optimizations
+echo "🌐 Configuring Nginx Reverse Proxy for stream.nexkh.top (Port 80 & 443)..."
+
+mkdir -p /etc/nginx/ssl
+if [ ! -f /etc/nginx/ssl/stream.crt ]; then
+    echo "🔒 Generating SSL Certificate for Cloudflare Full Mode..."
+    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+        -keyout /etc/nginx/ssl/stream.key \
+        -out /etc/nginx/ssl/stream.crt \
+        -subj "/CN=stream.nexkh.top"
+fi
+
 cat << 'EOF' > /etc/nginx/sites-available/stream.nexkh.top
 server {
     listen 80;
     listen [::]:80;
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
     server_name stream.nexkh.top;
+
+    ssl_certificate /etc/nginx/ssl/stream.crt;
+    ssl_certificate_key /etc/nginx/ssl/stream.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
 
     # Maximum file upload/request buffer
     client_max_body_size 0;

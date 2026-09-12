@@ -418,23 +418,16 @@ def setup_bot_handlers():
             reply_text = (
                 f"🎬 **វីដេអូត្រូវបានបង្កើត Stream Link រួចរាល់!**\n\n"
                 f"📁 **ឈ្មោះ:** `{file_name}`\n"
-                f"📦 **ទំហំ:** `{human_size(file_size)}`\n"
-                f"⚡ **Format:** `{mime_type}`\n\n"
-                f"🔗 **Direct Stream (.mp4):**\n`{stream_url}`\n\n"
-                f"🌐 **Web Player (មើលលើ Browser):**\n`{watch_url}`\n\n"
-                f"⬇️ **Direct Download:**\n`{download_url}`"
+                f"📦 **ទំហំ:** `{human_size(file_size)}`\n\n"
+                f"🔗 **Direct Stream (.mp4):**\n`{stream_url}`"
             )
 
-            # Inline keyboard buttons (Telegram rejects localhost URLs in inline buttons)
+            # Inline keyboard button
             try:
                 if "localhost" not in config.FQDN and "127.0.0.1" not in config.FQDN:
                     buttons = [
                         [
-                            Button.url("🎬 Watch on Web", watch_url),
-                            Button.url("⬇️ Download", download_url)
-                        ],
-                        [
-                            Button.url("🔗 Direct Link", stream_url)
+                            Button.url("🔗 Direct Stream (.mp4)", stream_url)
                         ]
                     ]
                     await status_msg.edit(reply_text, buttons=buttons)

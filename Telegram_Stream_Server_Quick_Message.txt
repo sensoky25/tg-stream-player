@@ -1,0 +1,39 @@
+📘 របៀបដំឡើង Telegram Video Stream Server (A ដល់ Z)
+
+១. បង្កើត Telegram Bot និង Channel
+----------------------------------
+1. បើក Telegram ស្វែងរក @BotFather -> ផ្ញើ /newbot -> ដាក់ឈ្មោះ និង Username ឱ្យ Bot -> ទទួលបាន BOT_TOKEN
+2. ចូល my.telegram.org -> បញ្ចូលលេខទូរស័ព្ទ -> API development tools -> ទទួលបាន API_ID និង API_HASH
+3. បង្កើត New Channel មួយលើ Telegram (ជ្រើសរើសជា Private Channel) -> Add Bot ចូលជា Administrator (បើកសិទ្ធិទាំងអស់)
+4. យក Channel ID ដោយ Forward សារពី Channel នោះទៅ @userinfobot (ឧ. -1003909046470)
+
+២. ទិញ VPS (Singapore)
+-----------------------
+1. ចូល DigitalOcean.com -> Create Droplet
+2. ជ្រើសរើស Region: Singapore 🇸🇬
+3. OS: Ubuntu 24.04 LTS (ឬ 22.04)
+4. Plan: Basic 1GB RAM ($6/ខែ ឬ $4/ខែ)
+5. ទទួលបាន IPv4 Address (ឧ. 157.245.201.238)
+
+៣. កំណត់ DNS ក្នុង Cloudflare (សំខាន់ ⚡)
+----------------------------------------
+1. ចូល Cloudflare -> ជ្រើសរើស Domain របស់អ្នក -> DNS -> Records -> Add record
+2. Type: A
+3. Name: stream (នឹងក្លាយជា stream.yourdomain.com)
+4. IPv4 address: ដាក់ IP របស់ VPS
+5. Proxy status: ចុចបិទឱ្យចេញ ពពកពណ៌ប្រផេះ (DNS only) ដាច់ខាត!
+6. ចុច Save
+
+៤. ដំឡើងលើ VPS ដោយស្វ័យប្រវត្តិ (1-Click Install)
+-----------------------------------------------
+បើក Console/Terminal របស់ VPS រួច Copy command ខាងក្រោមនេះយកទៅ Paste រួចចុច Enter:
+
+curl -sSL https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/setup_vps.sh | bash
+
+វានឹងសួរព័ត៌មានចំនួន ៦ សំណួរ គ្រាន់តែវាយបញ្ចូលតាមដែលបានកត់ទុកខាងលើ រួចជាការស្រេច!
+
+៥. របៀបប្រើប្រាស់
+----------------
+1. ចូលទៅ Chat ជាមួយ Bot របស់អ្នក -> Forward វីដេអូ (.mp4) ទៅកាន់ Bot
+2. Bot នឹងផ្ញើ Link: https://stream.yourdomain.com/stream/xxx.mp4
+3. Copy Link .mp4 នេះយកទៅដាក់ក្នុង Player លើ WordPress របស់អ្នកភ្លាមៗ!

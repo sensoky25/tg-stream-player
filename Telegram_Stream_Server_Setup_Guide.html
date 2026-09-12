@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>សៀវភៅណែនាំដំឡើង Telegram Video Stream Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #3730a3;
+            --primary-light: #e0e7ff;
+            --accent: #06b6d4;
+            --accent-glow: rgba(6, 182, 212, 0.2);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-km: 'Kantumruy Pro', sans-serif;
+            --font-en: 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-km);
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.75;
+            padding: 2.5rem 1rem;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 880px;
+            margin: 0 auto;
+        }
+
+        /* Header / Cover */
+        .doc-header {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.25) 0%, rgba(6, 182, 212, 0.15) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            padding: 0.4rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .doc-header h1 {
+            font-size: 2.35rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            line-height: 1.35;
+        }
+
+        .doc-header p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 20px;
+            padding: 2.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.2s;
+        }
+
+        .section-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .step-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .step-num {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: #ffffff;
+            border-radius: 12px;
+            font-family: var(--font-en);
+            font-weight: 800;
+            font-size: 1.15rem;
+            box-shadow: 0 4px 12px var(--accent-glow);
+            flex-shrink: 0;
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #38bdf8;
+            margin: 1.25rem 0 0.75rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        ol, ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.6rem;
+            color: #cbd5e1;
+        }
+
+        /* Callout Boxes */
+        .callout {
+            border-radius: 14px;
+            padding: 1.15rem 1.35rem;
+            margin: 1.25rem 0;
+            display: flex;
+            gap: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .callout-info {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            color: #7dd3fc;
+        }
+
+        .callout-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fde68a;
+        }
+
+        .callout-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #a7f3d0;
+        }
+
+        .callout i {
+            font-size: 1.25rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        /* Code Blocks */
+        .code-wrapper {
+            position: relative;
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 1.15rem 1.25rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .code-wrapper code {
+            font-family: var(--font-mono);
+            font-size: 0.92rem;
+            color: #38bdf8;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .btn-copy {
+            position: absolute;
+            top: 0.6rem;
+            right: 0.6rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: var(--font-km);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        /* Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+
+        .spec-table th, .spec-table td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .spec-table th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .spec-table td strong {
+            color: #ffffff;
+        }
+
+        /* Footer */
+        .doc-footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 3rem;
+        }
+
+        /* Print styling for PDF */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0;
+            }
+            .section-card {
+                background: #ffffff !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+            .doc-header {
+                background: #f1f5f9 !important;
+                color: #0f172a !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+            .doc-header h1 {
+                color: #0f172a !important;
+            }
+            .step-title {
+                color: #0f172a !important;
+            }
+            .code-wrapper {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+            }
+            .code-wrapper code {
+                color: #0369a1 !important;
+            }
+            .btn-copy {
+                display: none !important;
+            }
+            .callout-info {
+                background: #f0f9ff !important;
+                color: #0369a1 !important;
+                border-color: #bae6fd !important;
+            }
+            .callout-warning {
+                background: #fffbeb !important;
+                color: #b45309 !important;
+                border-color: #fde68a !important;
+            }
+            .callout-success {
+                background: #f0fdf4 !important;
+                color: #15803d !important;
+                border-color: #bbf7d0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <div class="doc-header">
+            <div class="badge-tag">
+                <i class="fa-solid fa-server"></i>
+                <span>មគ្គុទ្ទេសក៍ដំឡើងផ្លូវការ (Official Setup Guide)</span>
+            </div>
+            <h1>សៀវភៅណែនាំដំឡើង<br>Telegram Video Stream Server</h1>
+            <p>ប្រព័ន្ធចាក់ផ្សាយវីដេអូកម្រិតខ្ពស់ពី Telegram ទៅកាន់ Web Player លើ WordPress ដោយផ្ទាល់ ល្បឿនលឿនខ្លាំង មិនអស់ទំហំផ្ទុក Hard Disk និងឥតគិតថ្លៃ Bandwidth។</p>
+        </div>
+
+        <!-- Requirements -->
+        <div class="section-card">
+            <h2 class="step-title">
+                <span class="step-num"><i class="fa-solid fa-clipboard-check"></i></span>
+                <span>តម្រូវការជាមុន (Prerequisites)</span>
+            </h2>
+            <p style="margin-bottom: 1rem; color: #cbd5e1;">មុនពេលចាប់ផ្ដើមដំឡើង សូមប្រាកដថាអ្នកមានរបស់ចាំបាច់ទាំង ៣ នេះរួចរាល់៖</p>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>ឧបករណ៍ / សេវាកម្ម</th>
+                        <th>ការពិពណ៌នា</th>
+                        <th>តម្លៃ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>គណនី Telegram</strong></td>
+                        <td>សម្រាប់បង្កើត Telegram Bot និងទុកវីដេអូក្នុង Private Channel</td>
+                        <td><span style="color: var(--success);">ឥតគិតថ្លៃ (Free)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Domain ផ្ទាល់ខ្លួន</strong></td>
+                        <td>ឧទាហរណ៍ <code>yourdomain.com</code> ភ្ជាប់ជាមួយ Cloudflare</td>
+                        <td>មានស្រាប់</td>
+                    </tr>
+                    <tr>
+                        <td><strong>VPS (Ubuntu 24.04)</strong></td>
+                        <td>DigitalOcean, Linode ឬ Hetzner <strong>(ទីតាំង Singapore 🇸🇬)</strong></td>
+                        <td>ត្រឹម ~$4 ទៅ $6/ខែ</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="section-card">
+            <h2 class="step-title">
+                <span class="step-num">1</span>
+                <span>បង្កើត Bot និង Channel លើ Telegram</span>
+            </h2>
+
+            <h3><i class="fa-solid fa-robot"></i> ១.១ បង្កើត Telegram Bot</h3>
+            <ol>
+                <li>បើក Telegram ស្វែងរក <strong><a href="https://t.me/BotFather" target="_blank" style="color: #38bdf8;">@BotFather</a></strong></li>
+                <li>ផ្ញើសារ <code>/newbot</code></li>
+                <li>ដាក់ឈ្មោះ Bot របស់លោកអ្នក (ឧទាហរណ៍: <code>ANC Player Pro</code>)</li>
+                <li>ដាក់ Username Bot ដែលបញ្ចប់ដោយពាក្យ <code>bot</code> (ឧទាហរណ៍: <code>AncPlayerBot</code>)</li>
+                <li>BotFather នឹងផ្ដល់ជូន <strong>HTTP API Token</strong> (ហៅកាត់ថា <code>BOT_TOKEN</code>)៖
+                    <div class="code-wrapper">
+                        <code>8445405147:AAH51CWfNzBADynBFcGV1yHb5gcraKCnlfY</code>
+                        <button class="btn-copy" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <em>(សូមកត់ទុកលេខកូដនេះ)</em>
+                </li>
+            </ol>
+
+            <h3><i class="fa-solid fa-key"></i> ១.២ យក API_ID និង API_HASH (Telegram Keys)</h3>
+            <ol>
+                <li>ចូលទៅកាន់វេបសាយផ្លូវការ Telegram: <strong><a href="https://my.telegram.org" target="_blank" style="color: #38bdf8;">my.telegram.org</a></strong></li>
+                <li>វាយបញ្ចូលលេខទូរស័ព្ទ Telegram រួចវាយលេខកូដសម្ងាត់ដែល Telegram ផ្ញើចូលក្នុង App</li>
+                <li>ចុចលើពាក្យ <strong>API development tools</strong></li>
+                <li>បំពេញឈ្មោះ App អ្វីក៏បាន (ឧ. <code>VideoStreamer</code>) រួចចុច Submit</li>
+                <li>លោកអ្នកនឹងទទួលបាន៖
+                    <ul>
+                        <li><strong>App api_id:</strong> ជាលេខ (ឧ. <code>38606693</code>)</li>
+                        <li><strong>App api_hash:</strong> ជាអក្សរនិងលេខវែង (ឧ. <code>4784d8963ea114bcd26dd59d84f997ad</code>)</li>
+                    </ul>
+                    <em>(សូមកត់ទុកព័ត៌មានទាំងពីរនេះ)</em>
+                </li>
+            </ol>
+
+            <h3><i class="fa-solid fa-box-archive"></i> ១.៣ បង្កើត Channel ផ្ទុកវីដេអូ (Bin Channel)</h3>
+            <ol>
+                <li>ចុចបង្កើត <strong>New Channel</strong> មួយលើ Telegram</li>
+                <li>ជ្រើសរើសប្រភេទជា <strong>« Private Channel »</strong> <em>(ដាច់ខាតកុំដាក់ Public ដើម្បីការពារការ Report រឿង Copyright)</em></li>
+                <li>Add Bot ដែលទើបបង្កើតចូលក្នុង Channel នោះ</li>
+                <li>ចូលទៅ <strong>Manage Channel</strong> -> <strong>Administrators</strong> -> លើក Bot ឱ្យទៅជា <strong>Admin</strong> ដោយបើកសិទ្ធិទាំងអស់</li>
+                <li>យក <strong>Channel ID</strong>៖
+                    <ul>
+                        <li>Forward សារមួយពី Channel នោះទៅកាន់ bot <strong><a href="https://t.me/userinfobot" target="_blank" style="color: #38bdf8;">@userinfobot</a></strong></li>
+                        <li>បងនឹងឃើញលេខសម្គាល់ Channel ដែលចាប់ផ្ដើមដោយ <code>-100</code> (ឧ. <code>-1003909046470</code>)</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="section-card">
+            <h2 class="step-title">
+                <span class="step-num">2</span>
+                <span>ទិញ និងបង្កើត VPS (Singapore)</span>
+            </h2>
+            <ol>
+                <li>ចូលទៅកាន់ <strong><a href="https://www.digitalocean.com" target="_blank" style="color: #38bdf8;">DigitalOcean.com</a></strong> (ឬ Linode / Hetzner)</li>
+                <li>ចុច <strong>Create</strong> -> <strong>Droplets</strong></li>
+                <li>កំណត់ជ្រើសរើសដូចខាងក្រោម៖
+                    <ul>
+                        <li><strong>Region (ទីតាំង):</strong> <strong>Singapore 🇸🇬</strong> <em>(ល្បឿនមកកម្ពុជាលឿនបំផុត ~40ms)</em></li>
+                        <li><strong>OS (ប្រព័ន្ធប្រតិបត្តិការ):</strong> <strong>Ubuntu 24.04 LTS</strong> (ឬ 22.04)</li>
+                        <li><strong>Size:</strong> Basic Plan - <strong>1GB RAM / 1 vCPU ($6/ខែ)</strong> ឬ 512MB RAM ($4/ខែ)</li>
+                        <li><strong>Authentication:</strong> Password (ដាក់ Password ខ្លាំងមួយសម្រាប់ Login)</li>
+                    </ul>
+                </li>
+                <li>ចុច <strong>Create Droplet</strong> រួចរង់ចាំប្រហែល ១ នាទី លោកអ្នកនឹងទទួលបាន <strong>IPv4 Address</strong> (ឧទាហរណ៍: <code>157.245.201.238</code>)</li>
+            </ol>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="section-card">
+            <h2 class="step-title">
+                <span class="step-num">3</span>
+                <span>កំណត់ DNS លើ Cloudflare (DNS Only)</span>
+            </h2>
+
+            <div class="callout callout-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <strong>ចំណុចសំខាន់ដាច់ខាត៖</strong> ត្រូវបិទពពកពណ៌ទឹកក្រូចឱ្យទៅជា <strong>ពពកពណ៌ប្រផេះ (DNS only)</strong>។ ប្រសិនបើបើក Proxied នោះ Cloudflare នឹងកំហិតល្បឿនវីដេអូឱ្យនៅសល់ត្រឹម ~700 KB/s។ ពេលបិទទៅ DNS only ល្បឿននឹងស្ទុះដល់ <strong>60+ Mbps (8.3 MB/s)</strong> ភ្លាមៗ!
+                </div>
+            </div>
+
+            <ol>
+                <li>ចូលទៅ <strong>Cloudflare Dashboard</strong> -> ជ្រើសរើស Domain របស់លោកអ្នក</li>
+                <li>ចូលទៅ <strong>DNS</strong> -> <strong>Records</strong> -> ចុច <strong>Add record</strong></li>
+                <li>បំពេញ៖
+                    <ul>
+                        <li><strong>Type:</strong> <code>A</code></li>
+                        <li><strong>Name:</strong> <code>stream</code> (នោះ Domain នឹងទៅជា <code>stream.yourdomain.com</code>)</li>
+                        <li><strong>IPv4 address:</strong> ដាក់លេខ IP របស់ VPS ដែលទើបទិញបាន (ឧ. <code>157.245.201.238</code>)</li>
+                        <li><strong>Proxy status:</strong> ចុចបិទឱ្យចេញ <strong>ពពកពណ៌ប្រផេះ (DNS only)</strong></li>
+                    </ul>
+                </li>
+                <li>ចុច <strong>Save</strong></li>
+            </ol>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="section-card">
+            <h2 class="step-title">
+                <span class="step-num">4</span>
+                <span>ដំឡើងលើ VPS ដោយស្វ័យប្រវត្តិ (1-Click Install)</span>
+            </h2>
+            <p style="color: #cbd5e1; margin-bottom: 1rem;">ចូលទៅកាន់ Terminal របស់ VPS (អាចចុចប៊ូតុង <strong>Console</strong> លើ DigitalOcean ដោយផ្ទាល់) រួច Copy command ខាងក្រោមនេះទៅ Paste រួចចុច <strong>Enter</strong>៖</p>
+
+            <div class="code-wrapper">
+                <code>curl -sSL https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/setup_vps.sh | bash</code>
+                <button class="btn-copy" onclick="copyCode(this)">Copy</button>
+            </div>
+
+            <div class="callout callout-info">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                    ប្រព័ន្ធនឹងសួរសំណួរចំនួន <strong>៦ សំណួរ</strong> ដោយស្វ័យប្រវត្តិ៖<br>
+                    1. <strong>Domain:</strong> វាយបញ្ចូល <code>stream.yourdomain.com</code><br>
+                    2. <strong>BOT_TOKEN:</strong> វាយបញ្ចូល Token ដែលបានពី @BotFather<br>
+                    3. <strong>API_ID:</strong> វាយបញ្ចូល API ID ពី my.telegram.org<br>
+                    4. <strong>API_HASH:</strong> វាយបញ្ចូល API Hash ពី my.telegram.org<br>
+                    5. <strong>Bin Channel ID:</strong> វាយបញ្ចូលលេខ Channel (ឧ. <code>-1003909046470</code>)<br>
+                    6. <strong>Email:</strong> វាយបញ្ចូល Email របស់លោកអ្នកសម្រាប់ចុះឈ្មោះ Let's Encrypt SSL
+                </div>
+            </div>
+
+            <div class="callout callout-success">
+                <i class="fa-solid fa-circle-check"></i>
+                <div>
+                    <strong>រួចរាល់ ១០០%!</strong> ប្រព័ន្ធនឹងដំឡើង Nginx, Python, Let's Encrypt SSL (HTTPS 🔒), បង្កើត Swap Memory 2GB និងបើកឱ្យ Bot ដំណើរការ ២៤/៧ ដោយស្វ័យប្រវត្តិតែម្ដង!
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="section-card">
+            <h2 class="step-title">
+                <span class="step-num">5</span>
+                <span>របៀបប្រើប្រាស់ និងដាក់លើ WordPress Web Player</span>
+            </h2>
+
+            <h3><i class="fa-solid fa-paper-plane"></i> របៀបបង្កើត Stream Link</h3>
+            <ol>
+                <li>បើក Telegram -> ចូលទៅ Chat ជាមួយ Bot របស់លោកអ្នក</li>
+                <li>ធ្វើការ <strong>Forward វីដេអូ (.mp4)</strong> ឬផ្ញើវីដេអូរឿងទៅកាន់ Bot</li>
+                <li>Bot នឹងឆ្លើយតបមកវិញនូវ Link យ៉ាងស្រឡះ និងងាយស្រួល៖
+                    <div class="code-wrapper">
+<code>🎬 វីដេអូត្រូវបានបង្កើត Stream Link រួចរាល់!
+
+📁 ឈ្មោះ: Movie_Title (2025).mp4
+📦 ទំហំ: 1.85 GB
+
+🔗 Direct Stream (.mp4):
+https://stream.yourdomain.com/stream/145.mp4</code>
+                    </div>
+                </li>
+            </ol>
+
+            <h3><i class="fa-brands fa-wordpress"></i> ការយក Link ទៅដាក់លើ WordPress (VooMov / DooPlay)</h3>
+            <ul>
+                <li>គ្រាន់តែចុច Copy លើ Link <code>https://stream.yourdomain.com/stream/145.mp4</code></li>
+                <li>យកទៅ Paste ក្នុងប្រឡោះ <strong>MP4 Source / Video URL</strong> នៃ Player ក្នុង Post ភាពយន្តរបស់អ្នក ជាការស្រេច!</li>
+                <li>គាំទ្រ <strong>Seek ទៅមុខ-ថយក្រោយភ្លាមៗ (HTTP 206 Partial Content)</strong> មិនចាំបាច់រង់ចាំ Buffering យូរឡើយ។</li>
+            </ul>
+        </div>
+
+        <!-- Maintenance Commands -->
+        <div class="section-card">
+            <h2 class="step-title">
+                <span class="step-num"><i class="fa-solid fa-terminal"></i></span>
+                <span>Command សំខាន់ៗសម្រាប់គ្រប់គ្រង Server</span>
+            </h2>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>មុខងារ</th>
+                        <th>Command</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>ពិនិត្យមើល Status របស់ Bot</strong></td>
+                        <td><code>systemctl status tgstream</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Restart Bot ឡើងវិញ</strong></td>
+                        <td><code>systemctl restart tgstream</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Update កូដថ្មីបំផុត</strong></td>
+                        <td><code>cd /root/tg-stream-player && git pull && systemctl restart tgstream</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ពិនិត្យមើល Error Log</strong></td>
+                        <td><code>journalctl -u tgstream -f</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="doc-footer">
+            <p>© 2026 Telegram Video Stream Engine • រៀបចំដោយក្រុមការងារបច្ចេកទេស</p>
+        </div>
+
+    </div>
+
+    <script>
+        function copyCode(btn) {
+            const code = btn.previousElementSibling.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = 'Copied! ✓';
+                btn.style.background = '#10b981';
+                btn.style.color = '#ffffff';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -267,6 +267,8 @@ async def handle_stream(request: web.Request):
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
         "Access-Control-Allow-Headers": "*",
+        "X-Accel-Buffering": "no",
+        "Cache-Control": "public, max-age=86400, no-transform",
     }
 
     if is_range:

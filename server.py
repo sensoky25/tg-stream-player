@@ -132,15 +132,15 @@ def parse_range_header(range_header: str, file_size: int):
 # ========================================================
 
 async def handle_index(request: web.Request):
-    """Landing dashboard page."""
-    template = jinja_env.get_template("index.html")
-    rendered = template.render(
-        bot_ready=bool(tg_client and tg_client.is_connected()),
-        bot_username=getattr(bot_me, "username", None) if bot_me else None,
-        fqdn=config.FQDN,
-        port=config.PORT
-    )
-    return web.Response(text=rendered, content_type="text/html")
+    """Redirect landing page to main website so visitors cannot see stream engine dashboard."""
+    host = request.host.split(":")[0]
+    parts = host.split(".")
+    if len(parts) >= 2 and parts[0] in ("stream", "video", "media", "cdn"):
+        main_url = f"https://{'.'.join(parts[1:])}"
+    else:
+        main_url = "https://nexkh.top"
+
+    raise web.HTTPFound(location=main_url)
 
 async def handle_watch(request: web.Request):
     """Full Web Player page."""

@@ -155,6 +155,7 @@ systemctl restart nginx
 ufw allow 80/tcp || true
 ufw allow 443/tcp || true
 ufw allow 22/tcp || true
+ufw allow 22022/tcp || true
 
 # 9. Obtain Official Let's Encrypt SSL Certificate
 echo "🔒 Securing ${DOMAIN} with Let's Encrypt SSL..."

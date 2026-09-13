@@ -371,6 +371,15 @@ def setup_bot_handlers():
         sender_name = getattr(sender, "first_name", "User") or "User"
         logger.info(f"Incoming message from {sender_name} (ID {event.sender_id}): text='{event.raw_text}' has_media={bool(event.media)}")
 
+        # Check access permission (Whitelist / Private Mode)
+        if config.ALLOWED_USERS and event.sender_id not in config.ALLOWED_USERS:
+            logger.warning(f"Unauthorized access by {sender_name} (ID: {event.sender_id})")
+            await event.reply(
+                f"⛔ **សូមអភ័យទោស! Bot នេះត្រូវបានកំណត់ជាឯកជន (Private) សម្រាប់តែម្ចាស់ប៉ុណ្ណោះ។**\n\n"
+                f"👤 **Telegram ID របស់អ្នកគឺ:** `{event.sender_id}`"
+            )
+            return
+
         # Handle /start command
         if event.raw_text and event.raw_text.strip().startswith("/start"):
             welcome_text = (

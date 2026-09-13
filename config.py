@@ -21,6 +21,18 @@ try:
 except ValueError:
     BIN_CHANNEL = BIN_CHANNEL_RAW if BIN_CHANNEL_RAW else None
 
+# Allowed Users / Owner ID (Whitelist for private bot security)
+ALLOWED_USERS_RAW = os.getenv("ALLOWED_USERS", os.getenv("OWNER_ID", "")).strip()
+ALLOWED_USERS = set()
+if ALLOWED_USERS_RAW:
+    for uid in ALLOWED_USERS_RAW.split(","):
+        uid_clean = uid.strip()
+        if uid_clean:
+            try:
+                ALLOWED_USERS.add(int(uid_clean))
+            except ValueError:
+                pass
+
 # Server settings
 PORT = int(os.getenv("PORT", "8080"))
 HOST = os.getenv("HOST", "0.0.0.0")

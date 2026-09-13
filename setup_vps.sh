@@ -34,6 +34,7 @@ if [ -z "$BOT_TOKEN" ] || [ -z "$API_ID" ] || [ -z "$BIN_CHANNEL" ] || [ -z "$FQ
     read -p "4. បញ្ចូល API_HASH (ពី my.telegram.org): " INPUT_API_HASH < /dev/tty
     read -p "5. បញ្ចូល Bin Channel ID (ឧទាហរណ៍: -1003909046470): " INPUT_BIN_CHANNEL < /dev/tty
     read -p "6. បញ្ចូល Email សម្រាប់ចុះឈ្មោះ SSL (ឧទាហរណ៍: admin@gmail.com): " INPUT_EMAIL < /dev/tty
+    read -p "7. បញ្ចូល Telegram User ID របស់ម្ចាស់ (សម្រាប់ចាក់សោប្រើបានតែម្ចាស់ - ចុច Enter បើចង់ទុកចំហ): " INPUT_OWNER_ID < /dev/tty
     
     cat << EOF > .env
 API_ID=${INPUT_API_ID}
@@ -43,6 +44,7 @@ BIN_CHANNEL=${INPUT_BIN_CHANNEL}
 PORT=8080
 HOST=127.0.0.1
 FQDN=https://${INPUT_DOMAIN}
+OWNER_ID=${INPUT_OWNER_ID}
 EOF
 
     DOMAIN="${INPUT_DOMAIN}"

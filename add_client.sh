@@ -58,6 +58,7 @@ read -p "5. បញ្ចូល API_HASH (ពី my.telegram.org របស់ភ�
 read -p "6. បញ្ចូល Bin Channel ID (ឧ. -100xxxxxxxxxx): " INPUT_BIN_CHANNEL < /dev/tty
 read -p "7. បញ្ចូល Email សម្រាប់ចុះឈ្មោះ SSL (ឧ. admin@${INPUT_DOMAIN}): " INPUT_EMAIL < /dev/tty
 INPUT_EMAIL=${INPUT_EMAIL:-admin@${INPUT_DOMAIN}}
+read -p "8. បញ្ចូល Telegram User ID របស់ភ្ញៀវ (សម្រាប់ចាក់សោប្រើបានតែម្ចាស់ - ចុច Enter បើចង់ទុកចំហ): " INPUT_OWNER_ID < /dev/tty
 
 # 4. Auto-detect next available port (starting from 8081)
 PORT=8081
@@ -85,6 +86,7 @@ PORT=${PORT}
 HOST=127.0.0.1
 FQDN=https://${INPUT_DOMAIN}
 SESSION_NAME=session_${CLIENT_ID}
+OWNER_ID=${INPUT_OWNER_ID}
 EOF
 
 # 6. Create dedicated Systemd Service for this client

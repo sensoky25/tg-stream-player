@@ -153,6 +153,8 @@ nginx -t
 systemctl reload nginx
 
 # 8. Obtain Let's Encrypt SSL
+ufw allow 80/tcp || true
+ufw allow 443/tcp || true
 echo "🔒 ដំឡើង Let's Encrypt SSL សម្រាប់ ${INPUT_DOMAIN}..."
 certbot --nginx -d "${INPUT_DOMAIN}" --non-interactive --agree-tos --email "${INPUT_EMAIL}" --redirect || {
     echo "⚠️ មិនទាន់អាចដំឡើង SSL បានភ្លាមៗទេ។ សូមប្រាកដថាអតិថិជនបានចង្អុល A-Record ទៅកាន់ IP VPS នេះរួចរាល់ (Proxy: DNS Only)!"

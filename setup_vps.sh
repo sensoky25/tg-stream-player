@@ -151,16 +151,16 @@ rm -f /etc/nginx/sites-enabled/default
 nginx -t
 systemctl restart nginx
 
-# 8. Obtain Official Let's Encrypt SSL Certificate
+# 8. Firewall (Open ports before running certbot)
+ufw allow 80/tcp || true
+ufw allow 443/tcp || true
+ufw allow 22/tcp || true
+
+# 9. Obtain Official Let's Encrypt SSL Certificate
 echo "🔒 Securing ${DOMAIN} with Let's Encrypt SSL..."
 certbot --nginx -d "${DOMAIN}" --non-interactive --agree-tos --email "${SSL_EMAIL}" --redirect || {
     echo "⚠️ Certbot could not verify immediately. Please ensure DNS A-record points to this VPS IP."
 }
-
-# 9. Firewall
-ufw allow 80/tcp || true
-ufw allow 443/tcp || true
-ufw allow 22/tcp || true
 
 echo "========================================================"
 echo "🎉 SETUP COMPLETED SUCCESSFULLY!"

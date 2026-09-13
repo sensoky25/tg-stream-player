@@ -24,16 +24,16 @@ if [ -z "$BOT_TOKEN" ] || [ -z "$API_ID" ] || [ -z "$BIN_CHANNEL" ] || [ -z "$FQ
     echo "📝 សូមបញ្ចូលព័ត៌មាន Bot និង Domain សម្រាប់ Server ថ្មីនេះ៖"
     echo "--------------------------------------------------------"
     
-    read -p "1. បញ្ចូល Domain/Subdomain (ឧទាហរណ៍: stream.nexkh.top): " INPUT_DOMAIN
+    read -p "1. បញ្ចូល Domain/Subdomain (ឧទាហរណ៍: stream.nexkh.top): " INPUT_DOMAIN < /dev/tty
     INPUT_DOMAIN=${INPUT_DOMAIN#https://}
     INPUT_DOMAIN=${INPUT_DOMAIN#http://}
     INPUT_DOMAIN=${INPUT_DOMAIN%/}
     
-    read -p "2. បញ្ចូល Telegram BOT_TOKEN (ពី @BotFather): " INPUT_BOT_TOKEN
-    read -p "3. បញ្ចូល API_ID (ពី my.telegram.org): " INPUT_API_ID
-    read -p "4. បញ្ចូល API_HASH (ពី my.telegram.org): " INPUT_API_HASH
-    read -p "5. បញ្ចូល Bin Channel ID (ឧទាហរណ៍: -1003909046470): " INPUT_BIN_CHANNEL
-    read -p "6. បញ្ចូល Email សម្រាប់ចុះឈ្មោះ SSL (ឧទាហរណ៍: admin@gmail.com): " INPUT_EMAIL
+    read -p "2. បញ្ចូល Telegram BOT_TOKEN (ពី @BotFather): " INPUT_BOT_TOKEN < /dev/tty
+    read -p "3. បញ្ចូល API_ID (ពី my.telegram.org): " INPUT_API_ID < /dev/tty
+    read -p "4. បញ្ចូល API_HASH (ពី my.telegram.org): " INPUT_API_HASH < /dev/tty
+    read -p "5. បញ្ចូល Bin Channel ID (ឧទាហរណ៍: -1003909046470): " INPUT_BIN_CHANNEL < /dev/tty
+    read -p "6. បញ្ចូល Email សម្រាប់ចុះឈ្មោះ SSL (ឧទាហរណ៍: admin@gmail.com): " INPUT_EMAIL < /dev/tty
     
     cat << EOF > .env
 API_ID=${INPUT_API_ID}

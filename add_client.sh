@@ -22,7 +22,7 @@ fi
 echo ""
 echo "📝 សូមបញ្ចូលព័ត៌មានអតិថិជនថ្មី៖"
 echo "--------------------------------------------------------"
-read -p "1. ឈ្មោះសម្គាល់អតិថិជន (ជាអក្សរតូចគ្មានដកឃ្លា ឧ. client2 ឬ phumkhmer): " CLIENT_ID
+read -p "1. ឈ្មោះសម្គាល់អតិថិជន (ជាអក្សរតូចគ្មានដកឃ្លា ឧ. client2 ឬ phumkhmer): " CLIENT_ID < /dev/tty
 CLIENT_ID=$(echo "$CLIENT_ID" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]_-')
 
 if [ -z "$CLIENT_ID" ]; then
@@ -33,7 +33,7 @@ fi
 CLIENT_DIR="/root/tg-clients/${CLIENT_ID}"
 if [ -d "$CLIENT_DIR" ]; then
     echo "⚠️ អតិថិជនឈ្មោះ '${CLIENT_ID}' មានរួចហើយនៅក្នុង ${CLIENT_DIR}!"
-    read -p "តើបងចង់កែប្រែទិន្នន័យចាស់ទេ? (y/n): " OVERWRITE
+    read -p "តើបងចង់កែប្រែទិន្នន័យចាស់ទេ? (y/n): " OVERWRITE < /dev/tty
     if [ "$OVERWRITE" != "y" ]; then
         echo "បានបោះបង់។"
         exit 0
@@ -41,7 +41,7 @@ if [ -d "$CLIENT_DIR" ]; then
 fi
 
 # 2. Ask for Domain
-read -p "2. បញ្ចូល Domain/Subdomain របស់អតិថិជន (ឧ. stream.phumkhmer.com): " INPUT_DOMAIN
+read -p "2. បញ្ចូល Domain/Subdomain របស់អតិថិជន (ឧ. stream.phumkhmer.com): " INPUT_DOMAIN < /dev/tty
 INPUT_DOMAIN=${INPUT_DOMAIN#https://}
 INPUT_DOMAIN=${INPUT_DOMAIN#http://}
 INPUT_DOMAIN=${INPUT_DOMAIN%/}
@@ -52,11 +52,11 @@ if [ -z "$INPUT_DOMAIN" ]; then
 fi
 
 # 3. Ask for Telegram Credentials
-read -p "3. បញ្ចូល Telegram BOT_TOKEN (ពី @BotFather របស់ភ្ញៀវ): " INPUT_BOT_TOKEN
-read -p "4. បញ្ចូល API_ID (ពី my.telegram.org របស់ភ្ញៀវ): " INPUT_API_ID
-read -p "5. បញ្ចូល API_HASH (ពី my.telegram.org របស់ភ្ញៀវ): " INPUT_API_HASH
-read -p "6. បញ្ចូល Bin Channel ID (ឧ. -100xxxxxxxxxx): " INPUT_BIN_CHANNEL
-read -p "7. បញ្ចូល Email សម្រាប់ចុះឈ្មោះ SSL (ឧ. admin@${INPUT_DOMAIN}): " INPUT_EMAIL
+read -p "3. បញ្ចូល Telegram BOT_TOKEN (ពី @BotFather របស់ភ្ញៀវ): " INPUT_BOT_TOKEN < /dev/tty
+read -p "4. បញ្ចូល API_ID (ពី my.telegram.org របស់ភ្ញៀវ): " INPUT_API_ID < /dev/tty
+read -p "5. បញ្ចូល API_HASH (ពី my.telegram.org របស់ភ្ញៀវ): " INPUT_API_HASH < /dev/tty
+read -p "6. បញ្ចូល Bin Channel ID (ឧ. -100xxxxxxxxxx): " INPUT_BIN_CHANNEL < /dev/tty
+read -p "7. បញ្ចូល Email សម្រាប់ចុះឈ្មោះ SSL (ឧ. admin@${INPUT_DOMAIN}): " INPUT_EMAIL < /dev/tty
 INPUT_EMAIL=${INPUT_EMAIL:-admin@${INPUT_DOMAIN}}
 
 # 4. Auto-detect next available port (starting from 8081)

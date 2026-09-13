@@ -40,6 +40,11 @@
    * Forward សារមួយពី Channel នោះទៅកាន់ bot [@userinfobot](https://t.me/userinfobot) ឬ [@JsonDumpBot](https://t.me/JsonDumpBot)
    * បងនឹងឃើញលេខសម្គាល់ Channel ដែលចាប់ផ្ដើមដោយ `-100` (ឧ. `-1003909046470`)
 
+### ១.៤ យក Telegram User ID (សម្រាប់ចាក់សោសុវត្ថិភាព ឱ្យតែម្ចាស់ទើបប្រើបាន)
+1. ចូលទៅ Chat ជាមួយ Bot **[@userinfobot](https://t.me/userinfobot)**
+2. ចុច **Start** ឬផ្ញើសារណាមួយ នោះវានឹងបង្ហាញ **`Id: 1060072076`**
+3. *(សូមកត់ទុកលេខ ID នេះ ដើម្បីយកទៅចាក់សោ Bot)*
+
 ---
 
 ## ជំហានទី ២៖ ទិញ និងបង្កើត VPS (Singapore)
@@ -76,16 +81,17 @@
 2. Copy Command ខាងក្រោមនេះ យកទៅបិទភ្ជាប់ (Paste) រួចចុច **Enter**៖
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/setup_vps.sh | bash
+curl -sSL -O https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/setup_vps.sh && bash setup_vps.sh
 ```
 
-3. ប្រព័ន្ធនឹងសួរសំណួរចំនួន ៦ (សូមវាយបញ្ចូលព័ត៌មានដែលបានកត់ទុកនៅជំហានទី ១ និង ៣)៖
+3. ប្រព័ន្ធនឹងសួរសំណួរ (សូមវាយបញ្ចូលព័ត៌មានដែលបានកត់ទុកនៅជំហានទី ១ និង ៣)៖
    * `1. បញ្ចូល Domain/Subdomain`: (ឧទាហរណ៍ `stream.yourdomain.com`)
    * `2. បញ្ចូល Telegram BOT_TOKEN`: (ពី @BotFather)
    * `3. បញ្ចូល API_ID`: (ពី my.telegram.org)
    * `4. បញ្ចូល API_HASH`: (ពី my.telegram.org)
    * `5. បញ្ចូល Bin Channel ID`: (ឧទាហរណ៍ `-1003909046470`)
    * `6. បញ្ចូល Email សម្រាប់ SSL`: (ឧទាហរណ៍ Email របស់បង សម្រាប់ចុះឈ្មោះ Let's Encrypt)
+   * `7. បញ្ចូល Telegram User ID របស់ម្ចាស់`: (លេខ ID ដែលបានពី @userinfobot សម្រាប់ចាក់សោសុវត្ថិភាព)
 
 4. **រួចរាល់!** ប្រព័ន្ធនឹងដំណើរការដំឡើង Python, Nginx, Let's Encrypt SSL, មុខងារពន្លឿនវីដេអូ និងបើកឱ្យ Bot ដំណើរការ ២៤ ម៉ោងដោយស្វ័យប្រវត្តិ។
 

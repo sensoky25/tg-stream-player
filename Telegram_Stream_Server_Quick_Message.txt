@@ -6,6 +6,7 @@
 2. ចូល my.telegram.org -> បញ្ចូលលេខទូរស័ព្ទ -> API development tools -> ទទួលបាន API_ID និង API_HASH
 3. បង្កើត New Channel មួយលើ Telegram (ជ្រើសរើសជា Private Channel) -> Add Bot ចូលជា Administrator (បើកសិទ្ធិទាំងអស់)
 4. យក Channel ID ដោយ Forward សារពី Channel នោះទៅ @userinfobot (ឧ. -1003909046470)
+5. យក Telegram User ID របស់អ្នក (សម្រាប់ចាក់សោសុវត្ថិភាព ឱ្យប្រើបានតែម្ចាស់) ដោយ Chat ជាមួយ @userinfobot -> កត់ទុកលេខ Id (ឧ. 1060072076)
 
 ២. ទិញ VPS (Singapore)
 -----------------------
@@ -15,12 +16,12 @@
 4. Plan: Basic 1GB RAM ($6/ខែ ឬ $4/ខែ)
 5. ទទួលបាន IPv4 Address (ឧ. 157.245.201.238)
 
-៣. កំណត់ DNS ក្នុង Cloudflare (សំខាន់ ⚡)
-----------------------------------------
-1. ចូល Cloudflare -> ជ្រើសរើស Domain របស់អ្នក -> DNS -> Records -> Add record
+៣. កំណត់ DNS ក្នុង Cloudflare ឬ Namecheap (សំខាន់ ⚡)
+--------------------------------------------------
+1. បង្កើត A Record ថ្មីមួយក្នុង Cloudflare (ឬ Namecheap Advanced DNS)
 2. Type: A
-3. Name: stream (នឹងក្លាយជា stream.yourdomain.com)
-4. IPv4 address: ដាក់ IP របស់ VPS
+3. Name/Host: stream (នឹងក្លាយជា stream.yourdomain.com)
+4. IPv4 address / Value: ដាក់ IP របស់ VPS
 5. Proxy status: ចុចបិទឱ្យចេញ ពពកពណ៌ប្រផេះ (DNS only) ដាច់ខាត!
 6. ចុច Save
 
@@ -28,9 +29,9 @@
 -----------------------------------------------
 បើក Console/Terminal របស់ VPS រួច Copy command ខាងក្រោមនេះយកទៅ Paste រួចចុច Enter:
 
-curl -sSL https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/setup_vps.sh | bash
+curl -sSL -O https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/setup_vps.sh && bash setup_vps.sh
 
-វានឹងសួរព័ត៌មានចំនួន ៦ សំណួរ គ្រាន់តែវាយបញ្ចូលតាមដែលបានកត់ទុកខាងលើ រួចជាការស្រេច!
+វានឹងសួរព័ត៌មាន (Domain, Bot Token, API Keys, Channel ID, Email និង User ID សម្រាប់ចាក់សោសុវត្ថិភាព) គ្រាន់តែវាយបញ្ចូលតាមដែលបានកត់ទុកខាងលើ រួចជាការស្រេច!
 
 ៥. របៀបប្រើប្រាស់
 ----------------

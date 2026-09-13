@@ -377,7 +377,7 @@
                 <li>ដាក់ Username Bot ដែលបញ្ចប់ដោយពាក្យ <code>bot</code> (ឧទាហរណ៍: <code>AncPlayerBot</code>)</li>
                 <li>BotFather នឹងផ្ដល់ជូន <strong>HTTP API Token</strong> (ហៅកាត់ថា <code>BOT_TOKEN</code>)៖
                     <div class="code-wrapper">
-                        <code>8445405147:AAH51CWfNzBADynBFcGV1yHb5gcraKCnlfY</code>
+                        <code>8445405147:AAH51CWfNzBADynBFcGV1yHb5gcraKlkjhg</code>
                         <button class="btn-copy" onclick="copyCode(this)">Copy</button>
                     </div>
                     <em>(សូមកត់ទុកលេខកូដនេះ)</em>
@@ -473,20 +473,21 @@
             <p style="color: #cbd5e1; margin-bottom: 1rem;">ចូលទៅកាន់ Terminal របស់ VPS (អាចចុចប៊ូតុង <strong>Console</strong> លើ DigitalOcean ដោយផ្ទាល់) រួច Copy command ខាងក្រោមនេះទៅ Paste រួចចុច <strong>Enter</strong>៖</p>
 
             <div class="code-wrapper">
-                <code>curl -sSL https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/setup_vps.sh | bash</code>
+                <code>curl -sSL -O https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/setup_vps.sh && bash setup_vps.sh</code>
                 <button class="btn-copy" onclick="copyCode(this)">Copy</button>
             </div>
 
             <div class="callout callout-info">
                 <i class="fa-solid fa-circle-info"></i>
                 <div>
-                    ប្រព័ន្ធនឹងសួរសំណួរចំនួន <strong>៦ សំណួរ</strong> ដោយស្វ័យប្រវត្តិ៖<br>
+                    ប្រព័ន្ធនឹងសួរសំណួរដោយស្វ័យប្រវត្តិ៖<br>
                     1. <strong>Domain:</strong> វាយបញ្ចូល <code>stream.yourdomain.com</code><br>
                     2. <strong>BOT_TOKEN:</strong> វាយបញ្ចូល Token ដែលបានពី @BotFather<br>
                     3. <strong>API_ID:</strong> វាយបញ្ចូល API ID ពី my.telegram.org<br>
                     4. <strong>API_HASH:</strong> វាយបញ្ចូល API Hash ពី my.telegram.org<br>
                     5. <strong>Bin Channel ID:</strong> វាយបញ្ចូលលេខ Channel (ឧ. <code>-1003909046470</code>)<br>
-                    6. <strong>Email:</strong> វាយបញ្ចូល Email របស់លោកអ្នកសម្រាប់ចុះឈ្មោះ Let's Encrypt SSL
+                    6. <strong>Email:</strong> វាយបញ្ចូល Email សម្រាប់ចុះឈ្មោះ Let's Encrypt SSL<br>
+                    7. <strong>Owner ID:</strong> វាយបញ្ចូល Telegram User ID ដែលបានពី @userinfobot សម្រាប់ចាក់សោសុវត្ថិភាព
                 </div>
             </div>
 

@@ -401,22 +401,37 @@ def setup_bot_handlers():
         status_msg = await event.reply("⏳ កំពុងដំណើរការ និងបង្កើត Stream Link សូមរង់ចាំបន្តិច...")
 
         try:
-            # Forward message to bin channel
+            # Check if forwarded from the bin channel itself to prevent duplicates
             msg_id = None
-            try:
-                forwarded = await tg_client.forward_messages(config.BIN_CHANNEL, event.message)
-                if isinstance(forwarded, list):
-                    msg_id = forwarded[0].id
-                else:
-                    msg_id = forwarded.id
-            except Exception as fwd_err:
-                logger.warning(f"Forward failed ({fwd_err}), falling back to sending file copy...")
-                sent = await tg_client.send_file(
-                    config.BIN_CHANNEL,
-                    file=event.message.media,
-                    caption=event.message.text or ""
-                )
-                msg_id = sent.id
+            if getattr(event.message, "fwd_from", None) and getattr(event.message.fwd_from, "channel_post", None):
+                from_id = getattr(event.message.fwd_from, "from_id", None)
+                from_channel_id = None
+                if from_id:
+                    try:
+                        from telethon import utils
+                        from_channel_id = utils.get_peer_id(from_id)
+                    except Exception:
+                        pass
+                if from_channel_id == config.BIN_CHANNEL:
+                    msg_id = event.message.fwd_from.channel_post
+                    logger.info(f"Video already in bin channel (msg_id={msg_id}), skipping duplicate forward.")
+
+            # If not already in bin channel, forward message to bin channel
+            if not msg_id:
+                try:
+                    forwarded = await tg_client.forward_messages(config.BIN_CHANNEL, event.message)
+                    if isinstance(forwarded, list):
+                        msg_id = forwarded[0].id
+                    else:
+                        msg_id = forwarded.id
+                except Exception as fwd_err:
+                    logger.warning(f"Forward failed ({fwd_err}), falling back to sending file copy...")
+                    sent = await tg_client.send_file(
+                        config.BIN_CHANNEL,
+                        file=event.message.media,
+                        caption=event.message.text or ""
+                    )
+                    msg_id = sent.id
 
             # Extract info
             file_name, file_size, mime_type = get_media_info(event.message)

@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Telegram Drama & Movie Manager</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Google Fonts: Kantumruy Pro for Khmer & Outfit for English -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            /* Fallback colors matching Telegram Dark Theme */
+            --tg-theme-bg-color: #0d1117;
+            --tg-theme-secondary-bg-color: #161b22;
+            --tg-theme-text-color: #f0f6fc;
+            --tg-theme-hint-color: #8b949e;
+            --tg-theme-link-color: #58a6ff;
+            --tg-theme-button-color: #238636;
+            --tg-theme-button-text-color: #ffffff;
+
+            /* Luxury accent gradients */
+            --primary-accent: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            --card-glass: rgba(22, 27, 34, 0.85);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --badge-ongoing: #f59e0b;
+            --badge-completed: #10b981;
+            --font-khmer: 'Kantumruy Pro', sans-serif;
+            --font-en: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            font-family: var(--font-khmer);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            padding-bottom: 75px; /* Space for bottom nav */
+        }
+
+        /* App Top Bar */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(13, 17, 23, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .user-greeting {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .user-info h2 {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.2;
+            color: var(--tg-theme-text-color);
+        }
+
+        .user-info p {
+            font-size: 11px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--card-border);
+            color: var(--tg-theme-text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Search & Filter Header */
+        .search-section {
+            padding: 12px 16px 6px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 0 12px;
+            gap: 10px;
+            height: 42px;
+        }
+
+        .search-box i {
+            color: var(--tg-theme-hint-color);
+            font-size: 14px;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--tg-theme-text-color);
+            font-family: var(--font-khmer);
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .search-box input::placeholder {
+            color: var(--tg-theme-hint-color);
+        }
+
+        /* Genre Filter Chips Horizontal Scroll */
+        .genre-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 16px;
+            scrollbar-width: none;
+        }
+        .genre-chips::-webkit-scrollbar { display: none; }
+
+        .chip {
+            padding: 6px 14px;
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            color: var(--tg-theme-hint-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background: var(--primary-gradient);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Main Views Container */
+        .tab-content {
+            display: none;
+            padding: 10px 16px 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Drama Grid */
+        .drama-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        @media (min-width: 600px) {
+            .drama-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (min-width: 900px) {
+            .drama-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .drama-card {
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .drama-card:active {
+            transform: scale(0.98);
+        }
+
+        .card-poster {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            background: #1e2530;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 7px;
+            border-radius: 6px;
+            backdrop-filter: blur(8px);
+            text-transform: uppercase;
+        }
+
+        .badge-series { background: rgba(99, 102, 241, 0.85); color: #fff; }
+        .badge-movie { background: rgba(236, 72, 153, 0.85); color: #fff; }
+
+        .ep-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 6px;
+        }
+
+        .card-info {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.35;
+            color: var(--tg-theme-text-color);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 35px;
+        }
+
+        .card-meta {
+            font-size: 11px;
+            color: var(--tg-theme-hint-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 4px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .status-dot.ongoing { background-color: var(--badge-ongoing); }
+        .status-dot.completed { background-color: var(--badge-completed); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--tg-theme-hint-color);
+        }
+        .empty-state i {
+            font-size: 42px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        .empty-state h3 {
+            font-size: 16px;
+            color: var(--tg-theme-text-color);
+            margin-bottom: 6px;
+        }
+        .empty-state p {
+            font-size: 13px;
+            max-width: 280px;
+            margin: 0 auto 16px;
+        }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: rgba(13, 17, 23, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 60;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--tg-theme-hint-color);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+            height: 100%;
+            transition: color 0.2s;
+        }
+
+        .nav-item i {
+            font-size: 19px;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active {
+            color: #8b5cf6;
+        }
+
+        .nav-item.active i {
+            transform: translateY(-2px);
+        }
+
+        /* Modals & Slide-in Panels */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeInOverlay 0.2s ease;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-sheet {
+            background: var(--tg-theme-bg-color);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.5);
+            border-top: 1px solid var(--card-border);
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--card-border);
+            background: var(--tg-theme-secondary-bg-color);
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--tg-theme-hint-color);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-body {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--tg-theme-text-color);
+            font-family: var(--font-khmer);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #8b5cf6;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: var(--font-khmer);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--card-border);
+            color: var(--tg-theme-text-color);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-family: var(--font-khmer);
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-family: var(--font-khmer);
+            cursor: pointer;
+        }
+
+        /* Detail Modal Layout */
+        .detail-hero {
+            position: relative;
+            margin: -16px -16px 14px -16px;
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: flex-end;
+            padding: 16px;
+        }
+
+        .detail-hero-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(0deg, var(--tg-theme-bg-color) 15%, rgba(13, 17, 23, 0.7) 60%, rgba(0,0,0,0.4) 100%);
+        }
+
+        .detail-hero-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            gap: 14px;
+            align-items: flex-end;
+            width: 100%;
+        }
+
+        .detail-thumb {
+            width: 85px;
+            aspect-ratio: 2 / 3;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+            background: #161b22;
+        }
+
+        .detail-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .detail-headings {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .detail-headings h2 {
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .detail-headings p {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 3px;
+        }
+
+        .detail-actions-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Episodes List in Detail View */
+        .episodes-section h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .episode-card {
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .ep-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .ep-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .ep-titles h5 {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ep-titles p {
+            font-size: 11px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .ep-buttons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .ep-btn {
+            padding: 5px 9px;
+            border-radius: 6px;
+            font-size: 11px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: var(--font-khmer);
+        }
+
+        .ep-btn-watch {
+            background: var(--primary-gradient);
+            color: #fff;
+        }
+
+        .ep-btn-copy {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--tg-theme-text-color);
+        }
+
+        .ep-btn-del {
+            background: transparent;
+            color: #f87171;
+            padding: 5px 6px;
+        }
+
+        /* In-App Video Player Modal */
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .video-player-container video {
+            width: 100%;
+            max-height: 280px;
+            display: block;
+        }
+
+        /* Recent Uploads List */
+        .media-picker-item {
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .media-picker-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .media-picker-info h5 {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--tg-theme-text-color);
+        }
+
+        .media-picker-info p {
+            font-size: 11px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-card i {
+            font-size: 20px;
+            color: #8b5cf6;
+        }
+
+        .stat-card .val {
+            font-size: 22px;
+            font-weight: 700;
+            font-family: var(--font-en);
+            color: #fff;
+        }
+
+        .stat-card .lbl {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        /* Switch Toggle */
+        .switch-toggle {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .switch-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider-round {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #374151;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 34px;
+        }
+        .slider-round:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+        }
+        .switch-toggle input:checked + .slider-round {
+            background: var(--primary-gradient);
+        }
+        .switch-toggle input:checked + .slider-round:before {
+            transform: translateX(22px);
+        }
+
+        /* Domain Chip */
+        .domain-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #c7d2fe;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: var(--font-en);
+            transition: all 0.2s ease;
+        }
+        .domain-chip:hover {
+            border-color: rgba(99, 102, 241, 0.6);
+            background: rgba(99, 102, 241, 0.2);
+        }
+        .domain-chip .btn-del-domain {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .domain-chip .btn-del-domain:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Header -->
+    <header class="top-bar">
+        <div class="user-greeting">
+            <div class="user-avatar" id="userAvatar">T</div>
+            <div class="user-info">
+                <h2 id="userName">Admin</h2>
+                <p id="userStatus">Telegram Mini App</p>
+            </div>
+        </div>
+        <div class="top-actions">
+            <button class="icon-btn" onclick="openNewDramaModal()" title="បន្ថែមរឿងថ្មី">
+                <i class="fa-solid fa-plus" style="color: #a855f7;"></i>
+            </button>
+            <button class="icon-btn" onclick="fetchRecentMedia(); switchTab('tab-recent');" title="វីដេអូទើប Upload">
+                <i class="fa-solid fa-cloud-arrow-down" style="color: #06b6d4;"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Search and Genre Filtering Bar -->
+    <section class="search-section" id="searchBarSection">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="ស្វែងរករឿងតាមចំណងជើង..." oninput="handleSearch(this.value)">
+            <i class="fa-solid fa-xmark" id="clearSearchBtn" style="display:none; cursor:pointer;" onclick="clearSearch()"></i>
+        </div>
+    </section>
+
+    <!-- Genre Chips Horizontal Scroll -->
+    <div class="genre-chips" id="genreChips">
+        <div class="chip active" onclick="filterGenre('all', this)">ទាំងអស់ (All)</div>
+        <div class="chip" onclick="filterGenre('series', this, 'type')">📺 រឿងភាគ (Series)</div>
+        <div class="chip" onclick="filterGenre('movie', this, 'type')">🎬 រឿងដុំ (Movies)</div>
+        <div class="chip" onclick="filterGenre('រឿងភាគកូរ៉េ', this)">🇰🇷 កូរ៉េ</div>
+        <div class="chip" onclick="filterGenre('រឿងភាគចិន', this)">🇨🇳 ចិន</div>
+        <div class="chip" onclick="filterGenre('រឿងភាគថៃ', this)">🇹🇭 ថៃ</div>
+        <div class="chip" onclick="filterGenre('សកម្មភាព', this)">🔥 សកម្មភាព</div>
+        <div class="chip" onclick="filterGenre('មនោសញ្ចេតនា', this)">💖 ស្នេហា</div>
+        <div class="chip" onclick="filterGenre('Anime', this)">⚡ Anime</div>
+    </div>
+
+    <!-- TAB 1: Catalog & Library -->
+    <main class="tab-content active" id="tab-catalog">
+        <div class="drama-grid" id="dramaGrid">
+            <!-- Dynamically populated cards -->
+        </div>
+
+        <div class="empty-state" id="catalogEmpty" style="display: none;">
+            <i class="fa-solid fa-film"></i>
+            <h3>មិនទាន់មានរឿងនៅឡើយទេ</h3>
+            <p>ចុចប៊ូតុងខាងក្រោមដើម្បីបង្កើតរឿងដំបូងរបស់អ្នក ឬ Forward វីដេអូទៅកាន់ Telegram Bot!</p>
+            <button class="btn-primary" style="max-width: 200px; margin: 0 auto;" onclick="openNewDramaModal()">
+                <i class="fa-solid fa-plus"></i> បន្ថែមរឿងថ្មី
+            </button>
+        </div>
+    </main>
+
+    <!-- TAB 2: Recent Uploads from Telegram Bot -->
+    <section class="tab-content" id="tab-recent">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <h3 style="font-size: 15px; font-weight: 600;">📥 វីដេអូទើប Forward ចូល Bot</h3>
+            <button class="btn-secondary" onclick="fetchRecentMedia()">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+        </div>
+        <p style="font-size: 12px; color: var(--tg-theme-hint-color); margin-bottom: 14px;">
+            រាល់វីដេអូដែលអ្នក Forward ទៅកាន់ Telegram Bot នឹងបង្ហាញនៅទីនេះ។ អ្នកអាចចុច <b>"បញ្ចូលជាភាគ"</b> ដើម្បីភ្ជាប់ទៅរឿងដែលចង់បានបានភ្លាមៗ!
+        </p>
+
+        <!-- Quick Import by Message ID -->
+        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <input type="number" id="quickMsgIdInput" class="form-control" placeholder="វាយ Message ID (ឧ. 164)" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') quickImportMsgId()">
+            <button class="btn-primary" style="width: auto; padding: 0 16px; white-space: nowrap;" onclick="quickImportMsgId()">
+                <i class="fa-solid fa-cloud-arrow-down"></i> ទាញយក
+            </button>
+        </div>
+
+        <div id="recentUploadsList">
+            <div style="text-align: center; padding: 30px; color: var(--tg-theme-hint-color);">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px;"></i>
+                <p style="margin-top: 8px;">កំពុងទាញយកទិន្នន័យ...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 3: Statistics & Settings -->
+    <section class="tab-content" id="tab-stats">
+        <div class="stats-grid" id="statsContainer">
+            <div class="stat-card">
+                <i class="fa-solid fa-clapperboard"></i>
+                <div class="val" id="statTotalSeries">0</div>
+                <div class="lbl">រឿងសរុប (Dramas)</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-layer-group" style="color: #06b6d4;"></i>
+                <div class="val" id="statTotalEpisodes">0</div>
+                <div class="lbl">ភាគសរុប (Episodes)</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-tv" style="color: #ec4899;"></i>
+                <div class="val" id="statDramaCount">0</div>
+                <div class="lbl">រឿងភាគ (Series)</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-film" style="color: #10b981;"></i>
+                <div class="val" id="statMovieCount">0</div>
+                <div class="lbl">រឿងដុំ (Movies)</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 600;">⚡ Stream Server Status</h4>
+                    <p style="font-size: 12px; color: var(--tg-theme-hint-color);" id="serverDomainText">Direct Streaming Online</p>
+                </div>
+                <span style="font-size: 11px; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 10px; border-radius: 20px; font-weight: 600;">ACTIVE</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 6px;">🤖 របៀបភ្ជាប់ប៊ូតុង Menu លើ Telegram</h4>
+            <p style="font-size: 12px; color: var(--tg-theme-hint-color); line-height: 1.5; margin-bottom: 12px;">
+                ដើម្បីឱ្យមានប៊ូតុង "🎬 គ្រប់គ្រងរឿង" នៅជ្រុងខាងក្រោមឆ្វេងដៃនៃ Bot Chat របស់អ្នក គ្រាន់តែចូលទៅកាន់ <b>@BotFather</b> រួចផ្ញើ <code>/setmenubutton</code> ហើយដាក់ Link Mini App នេះ៖
+            </p>
+            <div style="background: var(--tg-theme-secondary-bg-color); padding: 8px 12px; border-radius: 8px; font-size: 12px; font-family: monospace; word-break: break-all; margin-bottom: 10px;" id="miniAppUrlBox">
+                https://.../app
+            </div>
+            <button class="btn-secondary" onclick="copyMiniAppUrl()">
+                <i class="fa-solid fa-copy"></i> Copy Mini App URL
+            </button>
+        </div>
+    </section>
+
+    <!-- TAB 4: Video Hotlink Protection & Security Settings -->
+    <section class="tab-content" id="tab-security">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-shield-halved" style="color: #6366f1;"></i> សុវត្ថិភាព Link វីដេអូ
+                </h3>
+                <p style="font-size: 12px; color: var(--tg-theme-hint-color); margin-top: 2px;">
+                    គ្រប់គ្រងការការពារ Hotlink និងកំណត់ Domain អនុញ្ញាត
+                </p>
+            </div>
+            <button class="btn-secondary" onclick="fetchSecuritySettings()" style="padding: 6px 12px; font-size: 12px;">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Master Switch: Hotlink Protection -->
+        <div class="stat-card" style="margin-bottom: 14px; background: var(--card-glass); border: 1px solid var(--card-border);">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h4 style="font-size: 14px; font-weight: 600;">ការពារ Link Video (Hotlink Protection)</h4>
+                        <span id="badgeSecurityStatus" style="font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600; background: rgba(107, 114, 128, 0.2); color: #9ca3af;">បិទ</span>
+                    </div>
+                    <p style="font-size: 12px; color: var(--tg-theme-hint-color); margin-top: 4px; line-height: 1.4;">
+                        ទប់ស្កាត់មិនឱ្យវេបសាយផ្សេងលួចយក Link Video (.mp4 ឬ Embed) ទៅចាក់ដោយគ្មានការអនុញ្ញាត (Anti-Leech)។
+                    </p>
+                </div>
+                <!-- Toggle Switch -->
+                <label class="switch-toggle" style="position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0;">
+                    <input type="checkbox" id="toggleHotlinkProtection" onchange="toggleHotlinkSwitch(this.checked)">
+                    <span class="slider-round"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Option: Allow Direct Access / Empty Referer -->
+        <div class="stat-card" style="margin-bottom: 14px; background: var(--card-glass); border: 1px solid var(--card-border);">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 600;">អនុញ្ញាតបើក Link ផ្ទាល់ (Direct Access)</h4>
+                    <p style="font-size: 12px; color: var(--tg-theme-hint-color); margin-top: 4px; line-height: 1.4;">
+                        អនុញ្ញាតឱ្យចាក់វីដេអូពេលចុច Link ផ្ទាល់តាម Browser ឬកម្មវិធី Telegram/VLC (ដែលគ្មាន Referer Header)។
+                    </p>
+                </div>
+                <!-- Toggle Switch -->
+                <label class="switch-toggle" style="position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0;">
+                    <input type="checkbox" id="toggleAllowEmptyReferer" onchange="toggleEmptyRefererSwitch(this.checked)">
+                    <span class="slider-round"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Allowed Domains Whitelist Section -->
+        <div class="stat-card" style="margin-bottom: 14px; background: var(--card-glass); border: 1px solid var(--card-border);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <h4 style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-list-check" style="color: #10b981;"></i> បញ្ជី Domain អនុញ្ញាត (Allowed Domains)
+                </h4>
+                <span id="allowedDomainsCount" style="font-size: 11px; background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 2px 8px; border-radius: 12px; font-weight: 600;">0 Domain</span>
+            </div>
+            <p style="font-size: 12px; color: var(--tg-theme-hint-color); margin-bottom: 12px; line-height: 1.4;">
+                មានតែវេបសាយដែលមានឈ្មោះ Domain ក្នុងបញ្ជីនេះប៉ុណ្ណោះ ទើបអាចចាក់វីដេអូបានពេលមុខងារការពារត្រូវបានបើក។
+            </p>
+
+            <!-- Add Domain Input Box -->
+            <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                <input type="text" id="newDomainInput" class="form-control" placeholder="វាយឈ្មោះ Domain (ឧ. nexkh.top ឬ *.mysite.com)" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') addAllowedDomain()">
+                <button class="btn-primary" style="width: auto; padding: 0 16px; white-space: nowrap;" onclick="addAllowedDomain()">
+                    <i class="fa-solid fa-plus"></i> បន្ថែម
+                </button>
+            </div>
+
+            <!-- Server Own Domain Badge (Always Allowed) -->
+            <div style="margin-bottom: 12px;">
+                <div style="font-size: 11px; color: var(--tg-theme-hint-color); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Domain របស់ Server (អនុញ្ញាតស្វ័យប្រវត្តិជានិច្ច)</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-family: monospace;">
+                        <i class="fa-solid fa-check-circle"></i> <span id="serverSelfDomainText">stream.server</span>
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border); color: var(--tg-theme-hint-color); padding: 4px 10px; border-radius: 8px; font-size: 12px; font-family: monospace;">
+                        <i class="fa-solid fa-lock"></i> localhost / Telegram
+                    </span>
+                </div>
+            </div>
+
+            <!-- List of Allowed Domains -->
+            <div style="font-size: 11px; color: var(--tg-theme-hint-color); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Domain ខាងក្រៅដែលបានបន្ថែម</div>
+            <div id="allowedDomainsList" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; align-items: center;">
+                <span style="color: var(--tg-theme-hint-color); font-size: 12px; font-style: italic;">មិនទាន់មាន Domain ខាងក្រៅនៅឡើយទេ។</span>
+            </div>
+        </div>
+
+        <!-- Quick Help & Instructions -->
+        <div class="stat-card" style="background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2);">
+            <h4 style="font-size: 13px; font-weight: 600; color: #818cf8; margin-bottom: 6px;">
+                💡 គន្លឹះ និងទម្រង់ Domain៖
+            </h4>
+            <ul style="font-size: 12px; color: var(--tg-theme-hint-color); line-height: 1.6; padding-left: 18px; margin: 0;">
+                <li><b>Domain ធម្មតា៖</b> ដាក់ <code>mywebsite.com</code> នោះទាំង <code>mywebsite.com</code> និង Subdomains (ដូចជា <code>www.mywebsite.com</code>, <code>watch.mywebsite.com</code>) សុទ្ធតែចាក់បានទាំងអស់។</li>
+                <li><b>Wildcard Subdomain៖</b> ដាក់ <code>*.moviekh.net</code> ដើម្បីអនុញ្ញាតគ្រប់ Subdomains ទាំងអស់។</li>
+                <li><b>មិនបាច់ Restart Server៖</b> រាល់ពេលបន្ថែម ឬលុប Domain ប្រព័ន្ធនឹង Update ភ្លាមៗក្នុងពេល ១ វិនាទី!</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('tab-catalog')" id="nav-catalog">
+            <i class="fa-solid fa-table-cells-large"></i>
+            <span>កាតាឡុក</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tab-recent'); fetchRecentMedia();" id="nav-recent">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+            <span>ទើប Upload</span>
+        </div>
+        <div class="nav-item" onclick="openNewDramaModal()" id="nav-add">
+            <i class="fa-solid fa-circle-plus" style="font-size: 24px; color: #8b5cf6;"></i>
+            <span>បន្ថែមរឿង</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tab-stats'); fetchStats();" id="nav-stats">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>ស្ថិតិ</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tab-security'); fetchSecuritySettings();" id="nav-security">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>សុវត្ថិភាព</span>
+        </div>
+    </nav>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 1: Create / Edit Drama -->
+    <!-- ======================================================== -->
+    <div class="modal-overlay" id="modalDramaForm">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3 id="dramaFormTitle">🎬 បង្កើតរឿងថ្មី</h3>
+                <button class="modal-close" onclick="closeModal('modalDramaForm')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editDramaId" value="">
+                
+                <div class="form-group">
+                    <label>ចំណងជើងរឿង (ខ្មែរ / អង់គ្លេស) *</label>
+                    <input type="text" id="formDramaTitle" class="form-control" placeholder="ឧ. រឿង និស្ស័យស្នេហ៍ដាវទេព">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ប្រភេទ (Type)</label>
+                        <select id="formDramaType" class="form-control">
+                            <option value="series">📺 រឿងភាគ (Series)</option>
+                            <option value="movie">🎬 រឿងដុំ (Single Movie)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>ស្ថានភាព (Status)</label>
+                        <select id="formDramaStatus" class="form-control">
+                            <option value="ongoing">⏳ កំពុងចាក់ផ្សាយ (Ongoing)</option>
+                            <option value="completed">✅ ចប់ហើយ (Completed)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>ប្រភេទរឿង / Genres (ក្បៀសខណ្ឌគ្នា)</label>
+                    <input type="text" id="formDramaGenres" class="form-control" placeholder="ឧ. រឿងភាគកូរ៉េ, សកម្មភាព, មនោសញ្ចេតនា">
+                </div>
+
+                <div class="form-group">
+                    <label>រូបភាព Poster URL</label>
+                    <input type="url" id="formDramaPoster" class="form-control" placeholder="https://image-url.com/poster.jpg" oninput="previewPoster(this.value)">
+                    <div id="posterPreviewBox" style="margin-top: 8px; width: 70px; height: 100px; border-radius: 8px; overflow: hidden; display: none; background: #222;">
+                        <img id="posterPreviewImg" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>សេចក្ដីសង្ខេប (Synopsis / Description)</label>
+                    <textarea id="formDramaDesc" class="form-control" placeholder="រៀបរាប់ដំណើររឿងសង្ខេប..."></textarea>
+                </div>
+
+                <button class="btn-primary" onclick="saveDrama()">
+                    <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកទិន្នន័យ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 2: Drama Details & Episodes Management -->
+    <!-- ======================================================== -->
+    <div class="modal-overlay" id="modalDramaDetail">
+        <div class="modal-sheet" style="max-height: 94vh;">
+            <div class="modal-header">
+                <h3 id="detailHeaderTitle">ព័ត៌មានលម្អិត</h3>
+                <button class="modal-close" onclick="closeModal('modalDramaDetail')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Hero Backdrop & Poster -->
+                <div class="detail-hero" id="detailHeroBg" style="background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800');">
+                    <div class="detail-hero-gradient"></div>
+                    <div class="detail-hero-content">
+                        <div class="detail-thumb">
+                            <img id="detailPosterImg" src="" alt="Poster">
+                        </div>
+                        <div class="detail-headings">
+                            <h2 id="detailTitle">Title</h2>
+                            <p id="detailGenres">Genres</p>
+                            <p id="detailStatusText" style="color: #38bdf8; font-weight: 500;">Ongoing</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar for this Drama -->
+                <div class="detail-actions-bar">
+                    <button class="btn-secondary" onclick="openAddEpisodeModal()">
+                        <i class="fa-solid fa-plus" style="color: #8b5cf6;"></i> បន្ថែមភាគ
+                    </button>
+                    <button class="btn-secondary" onclick="openPostGenerator()">
+                        <i class="fa-solid fa-bullhorn" style="color: #06b6d4;"></i> បង្កើត Telegram Post
+                    </button>
+                    <button class="btn-secondary" onclick="editCurrentDrama()">
+                        <i class="fa-solid fa-pen"></i> កែប្រែ
+                    </button>
+                    <button class="btn-danger" onclick="deleteCurrentDrama()">
+                        <i class="fa-solid fa-trash"></i> លុប
+                    </button>
+                </div>
+
+                <!-- Synopsis description -->
+                <div style="background: var(--tg-theme-secondary-bg-color); padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--card-border);">
+                    <h5 style="font-size: 12px; color: var(--tg-theme-hint-color); margin-bottom: 4px;">📖 សេចក្ដីសង្ខេប៖</h5>
+                    <p style="font-size: 13px; line-height: 1.5;" id="detailDesc">No description</p>
+                </div>
+
+                <!-- Episodes List Section -->
+                <div class="episodes-section">
+                    <h4>
+                        <span><i class="fa-solid fa-list-ol" style="color: #8b5cf6; margin-right: 6px;"></i> បញ្ជីភាគ (<span id="detailEpCount">0</span> ភាគ)</span>
+                        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="openAddEpisodeModal()">+ បន្ថែមភាគ</button>
+                    </h4>
+                    <div id="episodesList">
+                        <!-- Populated with episodes -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 3: Add / Edit Episode -->
+    <!-- ======================================================== -->
+    <div class="modal-overlay" id="modalAddEpisode">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3>➕ បន្ថែមភាគរឿង</h3>
+                <button class="modal-close" onclick="closeModal('modalAddEpisode')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="epCurrentSeriesId" value="">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>លេខភាគ (Episode Number) *</label>
+                        <input type="number" step="0.5" id="formEpNum" class="form-control" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>ឈ្មោះភាគ (Title / Label)</label>
+                        <input type="text" id="formEpTitle" class="form-control" placeholder="ភាគ ០១">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>ប្រភពវីដេអូ Telegram (Message ID ឬ Stream URL) *</label>
+                    <input type="text" id="formEpSource" class="form-control" placeholder="ឧ. 123 ឬ https://domain/stream/123.mp4">
+                    <p style="font-size: 11px; color: var(--tg-theme-hint-color); margin-top: 4px;">
+                        💡 វាយលេខ Message ID ដែលបានពី Bin Channel ឬបិទភ្ជាប់ Direct Stream Link
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <button class="btn-secondary" style="width: 100%; justify-content: center;" onclick="openQuickPickerForEpisode()">
+                        <i class="fa-solid fa-hand-pointer" style="color: #06b6d4;"></i> ជ្រើសរើសពីវីដេអូទើប Upload ក្នុង Bot
+                    </button>
+                </div>
+
+                <button class="btn-primary" onclick="submitEpisode()">
+                    <i class="fa-solid fa-check"></i> រក្សាទុកភាគនេះ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 4: In-App Video Player -->
+    <!-- ======================================================== -->
+    <div class="modal-overlay" id="modalPlayer">
+        <div class="modal-sheet" style="max-height: 90vh;">
+            <div class="modal-header">
+                <h3 id="playerModalTitle">▶️ ចាក់វីដេអូ</h3>
+                <button class="modal-close" onclick="closePlayerModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 12px;">
+                <div class="video-player-container">
+                    <video id="inAppVideo" controls playsinline preload="metadata">
+                        <source id="videoSource" src="" type="video/mp4">
+                        កម្មវិធីរុករករបស់អ្នកមិនគាំទ្រការចាក់វីដេអូនេះទេ។
+                    </video>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-secondary" style="flex: 1; justify-content: center;" onclick="copyCurrentStreamUrl()">
+                        <i class="fa-solid fa-copy"></i> Copy Stream (.mp4)
+                    </button>
+                    <button class="btn-secondary" style="flex: 1; justify-content: center;" onclick="openInExternalPlayer()">
+                        <i class="fa-solid fa-up-right-from-square"></i> Full Player
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 5: Telegram Channel Post Generator -->
+    <!-- ======================================================== -->
+    <div class="modal-overlay" id="modalPostGen">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3>📢 បង្កើតទម្រង់ Telegram Channel Post</h3>
+                <button class="modal-close" onclick="closeModal('modalPostGen')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 12px; color: var(--tg-theme-hint-color); margin-bottom: 8px;">
+                    ទម្រង់សារខាងក្រោមត្រូវបានរៀបចំស្អាតរួចជាស្រេចសម្រាប់យកទៅ Post ក្នុង Telegram Channel របស់អ្នក៖
+                </p>
+                <textarea id="postOutputArea" class="form-control" style="height: 180px; font-family: monospace; font-size: 12px;" readonly></textarea>
+                
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <button class="btn-primary" onclick="copyPostText()">
+                        <i class="fa-solid fa-copy"></i> Copy អត្ថបទនេះ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="appToast">
+        <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
+        <span id="toastMsg">សារជូនដំណឹង</span>
+    </div>
+
+    <!-- Application Javascript Logic -->
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            // Set header color
+            if (tg.setHeaderColor) tg.setHeaderColor('secondary_bg_color');
+            // Extract user info
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                document.getElementById('userName').textContent = user.first_name || 'Admin';
+                document.getElementById('userAvatar').textContent = (user.first_name || 'A')[0].toUpperCase();
+                document.getElementById('userStatus').textContent = `@${user.username || 'User'}`;
+            }
+        }
+
+        // Global State
+        let allSeries = [];
+        let currentSeries = null;
+        let activeFilter = 'all';
+        let filterMode = 'genre'; // 'genre' or 'type'
+        let currentPlayingUrl = '';
+
+        // API Base URL
+        const API_BASE = window.location.origin;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCatalog();
+            fetchStats();
+            fetchSecuritySettings();
+            document.getElementById('miniAppUrlBox').textContent = `${API_BASE}/app`;
+            document.getElementById('serverDomainText').textContent = API_BASE;
+
+            // Check if opened with ?add_id=123 from bot button
+            const urlParams = new URLSearchParams(window.location.search);
+            const addId = urlParams.get('add_id');
+            if (addId) {
+                fetch(`${API_BASE}/api/recent-media?fetch_id=${addId}`).then(() => {
+                    switchTab('tab-recent');
+                    fetchRecentMedia();
+                });
+            }
+        });
+
+        // ==========================================
+        // Toast Notification Helper
+        // ==========================================
+        function showToast(msg, icon = 'fa-circle-check', color = '#34d399') {
+            const toast = document.getElementById('appToast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = msg;
+            toast.querySelector('i').className = `fa-solid ${icon}`;
+            toast.querySelector('i').style.color = color;
+            toast.classList.add('show');
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // ==========================================
+        // Tab Navigation
+        // ==========================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.classList.add('active');
+
+            const navMap = {
+                'tab-catalog': 'nav-catalog',
+                'tab-recent': 'nav-recent',
+                'tab-stats': 'nav-stats',
+                'tab-security': 'nav-security'
+            };
+            const navBtn = document.getElementById(navMap[tabId]);
+            if (navBtn) navBtn.classList.add('active');
+
+            // Hide search bar on non-catalog tabs
+            const searchSec = document.getElementById('searchBarSection');
+            const chipsSec = document.getElementById('genreChips');
+            if (tabId === 'tab-catalog') {
+                searchSec.style.display = 'block';
+                chipsSec.style.display = 'flex';
+            } else {
+                searchSec.style.display = 'none';
+                chipsSec.style.display = 'none';
+            }
+
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        // ==========================================
+        // Catalog Fetch & Render
+        // ==========================================
+        async function fetchCatalog(search = '') {
+            try {
+                let url = `${API_BASE}/api/series`;
+                const params = new URLSearchParams();
+                if (search) params.append('search', search);
+                if (activeFilter !== 'all') {
+                    if (filterMode === 'type') {
+                        params.append('type', activeFilter);
+                    } else {
+                        params.append('genre', activeFilter);
+                    }
+                }
+                if ([...params].length > 0) url += `?${params.toString()}`;
+
+                const res = await fetch(url);
+                const data = await res.json();
+                allSeries = data.series || [];
+                renderCatalog(allSeries);
+            } catch (err) {
+                console.error('Failed to fetch series:', err);
+                showToast('មិនអាចទាញយកទិន្នន័យបានទេ', 'fa-circle-xmark', '#f87171');
+            }
+        }
+
+        function renderCatalog(items) {
+            const grid = document.getElementById('dramaGrid');
+            const empty = document.getElementById('catalogEmpty');
+
+            if (!items || items.length === 0) {
+                grid.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            grid.innerHTML = items.map(s => {
+                const poster = s.poster_url || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400';
+                const isMovie = s.type === 'movie';
+                const typeBadge = isMovie ? '<span class="card-badge badge-movie">រឿងដុំ</span>' : '<span class="card-badge badge-series">រឿងភាគ</span>';
+                const epBadge = isMovie ? '' : `<span class="ep-badge">${s.episode_count || 0} ភាគ</span>`;
+                const statusClass = s.status === 'completed' ? 'completed' : 'ongoing';
+                const statusText = s.status === 'completed' ? 'ចប់' : 'ផ្សាយ';
+
+                return `
+                    <div class="drama-card" onclick="viewDramaDetail(${s.id})">
+                        <div class="card-poster">
+                            <img src="${poster}" alt="${s.title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400'">
+                            ${typeBadge}
+                            ${epBadge}
+                        </div>
+                        <div class="card-info">
+                            <h4 class="card-title">${escapeHtml(s.title)}</h4>
+                            <div class="card-meta">
+                                <span><span class="status-dot ${statusClass}"></span>${statusText}</span>
+                                <span>${escapeHtml(s.genres ? s.genres.split(',')[0] : '')}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterGenre(genre, el, mode = 'genre') {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            activeFilter = genre;
+            filterMode = mode;
+            const searchVal = document.getElementById('searchInput').value;
+            fetchCatalog(searchVal);
+            if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        function handleSearch(val) {
+            const clearBtn = document.getElementById('clearSearchBtn');
+            clearBtn.style.display = val ? 'block' : 'none';
+            fetchCatalog(val);
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            fetchCatalog('');
+        }
+
+        // ==========================================
+        // Drama Detail View & Modal
+        // ==========================================
+        async function viewDramaDetail(seriesId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/series/${seriesId}`);
+                if (!res.ok) throw new Error('Series not found');
+                const s = await res.json();
+                currentSeries = s;
+
+                // Populate UI
+                document.getElementById('detailTitle').textContent = s.title;
+                document.getElementById('detailGenres').textContent = s.genres || (s.type === 'movie' ? 'រឿងដុំ' : 'រឿងភាគ');
+                document.getElementById('detailStatusText').textContent = s.status === 'completed' ? '✅ រឿងនេះបានបញ្ចប់ (Completed)' : '⏳ កំពុងចាក់ផ្សាយ (Ongoing)';
+                document.getElementById('detailDesc').textContent = s.description || 'មិនទាន់មានការរៀបរាប់...';
+                document.getElementById('detailEpCount').textContent = (s.episodes || []).length;
+
+                const poster = s.poster_url || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400';
+                document.getElementById('detailPosterImg').src = poster;
+                document.getElementById('detailHeroBg').style.backgroundImage = `url('${s.backdrop_url || poster}')`;
+
+                // Render Episodes List
+                renderEpisodesList(s.episodes || []);
+
+                openModal('modalDramaDetail');
+            } catch (err) {
+                console.error(err);
+                showToast('មិនអាចបើកព័ត៌មានរឿងនេះបានទេ', 'fa-circle-xmark', '#f87171');
+            }
+        }
+
+        function renderEpisodesList(episodes) {
+            const container = document.getElementById('episodesList');
+            if (!episodes || episodes.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding: 24px; color: var(--tg-theme-hint-color);">
+                        <i class="fa-solid fa-film" style="font-size: 28px; opacity: 0.5; margin-bottom: 6px;"></i>
+                        <p style="font-size: 13px;">មិនទាន់មានភាគនៅឡើយទេ។</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = episodes.map(ep => {
+                const streamUrl = ep.stream_url || `${API_BASE}/stream/${ep.msg_id}.mp4`;
+                const watchUrl = `${API_BASE}/watch/${ep.msg_id || ''}`;
+                const title = ep.title || `ភាគ ${ep.episode_num}`;
+                const sizeText = ep.file_size ? humanSize(ep.file_size) : '';
+
+                return `
+                    <div class="episode-card">
+                        <div class="ep-left">
+                            <div class="ep-icon"><i class="fa-solid fa-play"></i></div>
+                            <div class="ep-titles">
+                                <h5>${escapeHtml(title)}</h5>
+                                <p>${sizeText ? sizeText + ' • ' : ''}ID: ${ep.msg_id || 'Direct'}</p>
+                            </div>
+                        </div>
+                        <div class="ep-buttons">
+                            <button class="ep-btn ep-btn-watch" onclick="playEpisode('${streamUrl}', '${escapeHtml(title)}')">
+                                <i class="fa-solid fa-play"></i> មើល
+                            </button>
+                            <button class="ep-btn ep-btn-copy" title="Copy Link" onclick="copyText('${streamUrl}', 'បានចម្លង Stream Link!')">
+                                <i class="fa-solid fa-link"></i>
+                            </button>
+                            <button class="ep-btn ep-btn-del" title="លុបភាគ" onclick="deleteEpisodeItem(${ep.id})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // Video Player Modal
+        // ==========================================
+        function playEpisode(url, title) {
+            currentPlayingUrl = url;
+            document.getElementById('playerModalTitle').textContent = `▶️ ${title}`;
+            const video = document.getElementById('inAppVideo');
+            const source = document.getElementById('videoSource');
+            source.src = url;
+            video.load();
+            openModal('modalPlayer');
+            video.play().catch(e => console.log('Autoplay prevented:', e));
+        }
+
+        function closePlayerModal() {
+            const video = document.getElementById('inAppVideo');
+            video.pause();
+            closeModal('modalPlayer');
+        }
+
+        function copyCurrentStreamUrl() {
+            if (currentPlayingUrl) {
+                copyText(currentPlayingUrl, 'បានចម្លង Direct Stream (.mp4)!');
+            }
+        }
+
+        function openInExternalPlayer() {
+            if (currentPlayingUrl) {
+                window.open(currentPlayingUrl, '_blank');
+            }
+        }
+
+        // ==========================================
+        // Add / Edit Drama Form Handlers
+        // ==========================================
+        function openNewDramaModal() {
+            document.getElementById('dramaFormTitle').textContent = '🎬 បង្កើតរឿងថ្មី';
+            document.getElementById('editDramaId').value = '';
+            document.getElementById('formDramaTitle').value = '';
+            document.getElementById('formDramaGenres').value = '';
+            document.getElementById('formDramaPoster').value = '';
+            document.getElementById('formDramaDesc').value = '';
+            document.getElementById('formDramaType').value = 'series';
+            document.getElementById('formDramaStatus').value = 'ongoing';
+            document.getElementById('posterPreviewBox').style.display = 'none';
+            openModal('modalDramaForm');
+        }
+
+        function editCurrentDrama() {
+            if (!currentSeries) return;
+            closeModal('modalDramaDetail');
+            document.getElementById('dramaFormTitle').textContent = '✏️ កែប្រែព័ត៌មានរឿង';
+            document.getElementById('editDramaId').value = currentSeries.id;
+            document.getElementById('formDramaTitle').value = currentSeries.title || '';
+            document.getElementById('formDramaGenres').value = currentSeries.genres || '';
+            document.getElementById('formDramaPoster').value = currentSeries.poster_url || '';
+            document.getElementById('formDramaDesc').value = currentSeries.description || '';
+            document.getElementById('formDramaType').value = currentSeries.type || 'series';
+            document.getElementById('formDramaStatus').value = currentSeries.status || 'ongoing';
+            previewPoster(currentSeries.poster_url);
+            openModal('modalDramaForm');
+        }
+
+        function previewPoster(url) {
+            const box = document.getElementById('posterPreviewBox');
+            const img = document.getElementById('posterPreviewImg');
+            if (url && url.startsWith('http')) {
+                img.src = url;
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        async function saveDrama() {
+            const editId = document.getElementById('editDramaId').value;
+            const title = document.getElementById('formDramaTitle').value.trim();
+            if (!title) {
+                alert('សូមបញ្ចូលចំណងជើងរឿង!');
+                return;
+            }
+
+            const payload = {
+                title: title,
+                type: document.getElementById('formDramaType').value,
+                status: document.getElementById('formDramaStatus').value,
+                genres: document.getElementById('formDramaGenres').value.trim(),
+                poster_url: document.getElementById('formDramaPoster').value.trim(),
+                description: document.getElementById('formDramaDesc').value.trim()
+            };
+
+            try {
+                let res;
+                if (editId) {
+                    res = await fetch(`${API_BASE}/api/series/${editId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    res = await fetch(`${API_BASE}/api/series`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                if (!res.ok) throw new Error('Save failed');
+                closeModal('modalDramaForm');
+                showToast(editId ? 'បានកែប្រែដោយជោគជ័យ!' : 'បានបង្កើតរឿងថ្មីជោគជ័យ!');
+                fetchCatalog();
+                fetchStats();
+            } catch (err) {
+                console.error(err);
+                showToast('មានបញ្ហាក្នុងការរក្សាទុក', 'fa-circle-xmark', '#f87171');
+            }
+        }
+
+        async function deleteCurrentDrama() {
+            if (!currentSeries) return;
+            if (!confirm(`តើអ្នកប្រាកដជាចង់លុបរឿង "${currentSeries.title}" មែនទេ? ភាគទាំងអស់ក៏នឹងត្រូវលុបផងដែរ!`)) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/series/${currentSeries.id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Delete failed');
+                closeModal('modalDramaDetail');
+                showToast('បានលុបរឿងរួចរាល់!');
+                fetchCatalog();
+                fetchStats();
+            } catch (err) {
+                console.error(err);
+                showToast('មិនអាចលុបបានទេ', 'fa-circle-xmark', '#f87171');
+            }
+        }
+
+        // ==========================================
+        // Episode Operations
+        // ==========================================
+        function openAddEpisodeModal(prefillMsgId = '', prefillTitle = '') {
+            if (!currentSeries) return;
+            document.getElementById('epCurrentSeriesId').value = currentSeries.id;
+            
+            // Guess next episode number
+            let nextNum = 1;
+            if (currentSeries.episodes && currentSeries.episodes.length > 0) {
+                const maxNum = Math.max(...currentSeries.episodes.map(e => e.episode_num || 0));
+                nextNum = Math.floor(maxNum) + 1;
+            }
+            document.getElementById('formEpNum').value = nextNum;
+            document.getElementById('formEpTitle').value = prefillTitle || `ភាគ ${nextNum}`;
+            document.getElementById('formEpSource').value = prefillMsgId || '';
+
+            openModal('modalAddEpisode');
+        }
+
+        async function submitEpisode() {
+            const seriesId = document.getElementById('epCurrentSeriesId').value;
+            const epNum = document.getElementById('formEpNum').value;
+            const title = document.getElementById('formEpTitle').value.trim();
+            const source = document.getElementById('formEpSource').value.trim();
+
+            if (!source) {
+                alert('សូមបញ្ចូល Message ID ឬ Stream URL នៃវីដេអូ!');
+                return;
+            }
+
+            let msgId = null;
+            let streamUrl = '';
+
+            // Extract msg_id if URL was pasted
+            if (source.includes('/stream/')) {
+                const match = source.match(/\/stream\/(\d+)/);
+                if (match) msgId = parseInt(match[1]);
+                streamUrl = source;
+            } else if (!isNaN(source)) {
+                msgId = parseInt(source);
+                streamUrl = `${API_BASE}/stream/${msgId}.mp4`;
+            } else {
+                streamUrl = source;
+            }
+
+            const payload = {
+                episode_num: parseFloat(epNum) || 1,
+                title: title,
+                msg_id: msgId,
+                stream_url: streamUrl
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/api/series/${seriesId}/episodes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error('Failed to add episode');
+                closeModal('modalAddEpisode');
+                showToast('បានបញ្ចូលភាគថ្មីជោគជ័យ!');
+                // Refresh drama details
+                viewDramaDetail(seriesId);
+                fetchStats();
+            } catch (err) {
+                console.error(err);
+                showToast('មានបញ្ហាក្នុងការបញ្ចូលភាគ', 'fa-circle-xmark', '#f87171');
+            }
+        }
+
+        async function deleteEpisodeItem(episodeId) {
+            if (!confirm('តើអ្នកចង់លុបភាគនេះមែនទេ?')) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/episodes/${episodeId}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Delete failed');
+                showToast('បានលុបភាគនេះរួចរាល់!');
+                if (currentSeries) viewDramaDetail(currentSeries.id);
+                fetchStats();
+            } catch (err) {
+                console.error(err);
+                showToast('មិនអាចលុបភាគបានទេ', 'fa-circle-xmark', '#f87171');
+            }
+        }
+
+        // ==========================================
+        // Quick Import by Message ID & Recent Uploads
+        // ==========================================
+        async function quickImportMsgId() {
+            const input = document.getElementById('quickMsgIdInput');
+            const msgId = input.value.trim();
+            if (!msgId) {
+                alert('សូមវាយបញ្ចូល Message ID (ឧ. 164)!');
+                return;
+            }
+
+            showToast('កំពុងស្វែងរកវីដេអូ ID ' + msgId + '...', 'fa-spinner fa-spin', '#06b6d4');
+            try {
+                const res = await fetch(`${API_BASE}/api/recent-media/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ msg_id: msgId })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'រកមិនឃើញវីដេអូ ID នេះក្នុង Channel ផ្ទុកទេ');
+                }
+                input.value = '';
+                showToast('បានទាញយកវីដេអូ ID ' + msgId + ' ជោគជ័យ!');
+                fetchRecentMedia();
+            } catch (err) {
+                console.error(err);
+                showToast('កំហុស៖ ' + err.message, 'fa-circle-xmark', '#f87171');
+            }
+        }
+
+        async function fetchRecentMedia() {
+            const container = document.getElementById('recentUploadsList');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 30px; color: var(--tg-theme-hint-color);">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px;"></i>
+                    <p style="margin-top: 8px;">កំពុងទាញយកវីដេអូចុងក្រោយពី Bot...</p>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/recent-media`);
+                const data = await res.json();
+                const mediaItems = data.media || [];
+
+                if (mediaItems.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <h3>មិនទាន់មានវីដេអូទើប Upload ទេ</h3>
+                            <p>សូម Forward វីដេអូទៅកាន់ Bot របស់អ្នក នោះវីដេអូនឹងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = mediaItems.map(m => {
+                    const streamUrl = `${API_BASE}/stream/${m.id}.mp4`;
+                    return `
+                        <div class="media-picker-item">
+                            <div class="ep-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+                                <i class="fa-solid fa-video"></i>
+                            </div>
+                            <div class="media-picker-info">
+                                <h5>${escapeHtml(m.file_name || 'វីដេអូ Telegram')}</h5>
+                                <p>${humanSize(m.file_size)} • ID: <b>${m.id}</b></p>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="btn-secondary" style="padding: 6px 10px; font-size: 11px;" onclick="playEpisode('${streamUrl}', '${escapeHtml(m.file_name)}')">
+                                    <i class="fa-solid fa-play"></i>
+                                </button>
+                                <button class="btn-primary" style="padding: 6px 10px; font-size: 11px; width: auto;" onclick="quickAssignMediaToDrama(${m.id}, '${escapeHtml(m.file_name)}')">
+                                    <i class="fa-solid fa-plus"></i> ដាក់ចូលរឿង
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<p style="color:#f87171; text-align:center; padding:20px;">មិនអាចទាញយកទិន្នន័យបានទេ៖ ${err.message}</p>`;
+            }
+        }
+
+        function quickAssignMediaToDrama(msgId, fileName) {
+            if (!allSeries || allSeries.length === 0) {
+                alert('សូមបង្កើតរឿងយ៉ាងហោចណាស់មួយជាមុនសិន!');
+                switchTab('tab-catalog');
+                openNewDramaModal();
+                return;
+            }
+
+            // Prompt user to pick a series
+            const options = allSeries.map((s, idx) => `${idx + 1}. ${s.title}`).join('\n');
+            const choice = prompt(`ជ្រើសរើសរឿងដែលត្រូវដាក់វីដេអូនេះចូល (វាយលេខរៀង):\n\n${options}`);
+            if (!choice) return;
+
+            const selectedIndex = parseInt(choice) - 1;
+            if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= allSeries.length) {
+                alert('ការជ្រើសរើសមិនត្រឹមត្រូវទេ!');
+                return;
+            }
+
+            const targetSeries = allSeries[selectedIndex];
+            currentSeries = targetSeries;
+            openAddEpisodeModal(msgId, fileName.replace(/\.[^/.]+$/, ""));
+        }
+
+        function openQuickPickerForEpisode() {
+            closeModal('modalAddEpisode');
+            switchTab('tab-recent');
+            fetchRecentMedia();
+            showToast('ចុច "ដាក់ចូលរឿង" លើវីដេអូដែលអ្នកចង់ភ្ជាប់!', 'fa-hand-pointer', '#06b6d4');
+        }
+
+        // ==========================================
+        // Telegram Post Generator
+        // ==========================================
+        function openPostGenerator() {
+            if (!currentSeries) return;
+            const s = currentSeries;
+            const episodes = s.episodes || [];
+
+            let text = `🎬 **${s.title}**\n`;
+            if (s.genres) text += `🎭 ប្រភេទ៖ ${s.genres}\n`;
+            text += `📌 ស្ថានភាព៖ ${s.status === 'completed' ? 'ចប់ហើយ' : 'កំពុងចាក់ផ្សាយ'}\n`;
+            if (s.description) text += `📝 សង្ខេប៖ ${s.description}\n`;
+            text += `\n📺 **តំណភ្ជាប់ទស្សនា (Direct Stream Link):**\n`;
+
+            if (episodes.length === 0) {
+                text += `(មិនទាន់មានភាគនៅឡើយទេ)\n`;
+            } else {
+                episodes.forEach(ep => {
+                    const link = ep.stream_url || `${API_BASE}/stream/${ep.msg_id}.mp4`;
+                    text += `▫️ ${ep.title || 'ភាគ ' + ep.episode_num}៖ ${link}\n`;
+                });
+            }
+
+            text += `\n✨ រីករាយទស្សនាដោយសេរី គ្មានពាណិជ្ជកម្មរំខាន!`;
+
+            document.getElementById('postOutputArea').value = text;
+            openModal('modalPostGen');
+        }
+
+        function copyPostText() {
+            const area = document.getElementById('postOutputArea');
+            copyText(area.value, 'បានចម្លងអត្ថបទ Telegram Post រួចរាល់!');
+        }
+
+        // ==========================================
+        // Stats Fetch
+        // ==========================================
+        async function fetchStats() {
+            try {
+                const res = await fetch(`${API_BASE}/api/stats`);
+                const data = await res.json();
+                document.getElementById('statTotalSeries').textContent = data.total_series || 0;
+                document.getElementById('statTotalEpisodes').textContent = data.total_episodes || 0;
+                document.getElementById('statDramaCount').textContent = data.drama_series_count || 0;
+                document.getElementById('statMovieCount').textContent = data.movie_count || 0;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function copyMiniAppUrl() {
+            copyText(`${API_BASE}/app`, 'បានចម្លង Link Mini App!');
+        }
+
+        // ==========================================
+        // Utilities & Modal Helpers
+        // ==========================================
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.classList.add('active');
+            if (tg?.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => closeModal(id));
+            }
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.classList.remove('active');
+            if (tg?.BackButton) tg.BackButton.hide();
+        }
+
+        function copyText(text, successMsg = 'បានចម្លង!') {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(successMsg);
+            }).catch(() => {
+                // Fallback
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast(successMsg);
+            });
+        }
+
+        function humanSize(bytes) {
+            if (!bytes) return '0 B';
+            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            let i = 0;
+            let sz = parseFloat(bytes);
+            while (sz >= 1024 && i < units.length - 1) {
+                sz /= 1024;
+                i++;
+            }
+            return `${sz.toFixed(2)} ${units[i]}`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // ==========================================
+        // Video Hotlink & Domain Security Management
+        // ==========================================
+        let currentSecuritySettings = {
+            hotlink_protection_enabled: false,
+            allowed_domains: [],
+            allow_empty_referer: true,
+            server_domain: ''
+        };
+
+        async function fetchSecuritySettings() {
+            try {
+                const res = await fetch('/api/security/settings');
+                const data = await res.json();
+                currentSecuritySettings = data;
+                renderSecurityUI();
+            } catch (err) {
+                console.error('Error fetching security settings:', err);
+                showToast('មិនអាចទាញយកការកំណត់សុវត្ថិភាពបានទេ', 'fa-circle-exclamation', '#ef4444');
+            }
+        }
+
+        function renderSecurityUI() {
+            const isEnabled = Boolean(currentSecuritySettings.hotlink_protection_enabled);
+            const allowEmpty = Boolean(currentSecuritySettings.allow_empty_referer);
+            const domains = currentSecuritySettings.allowed_domains || [];
+
+            // Master toggle
+            const toggle = document.getElementById('toggleHotlinkProtection');
+            if (toggle) toggle.checked = isEnabled;
+
+            const badge = document.getElementById('badgeSecurityStatus');
+            if (badge) {
+                if (isEnabled) {
+                    badge.textContent = 'កំពុងការពារ';
+                    badge.style.background = 'rgba(16, 185, 129, 0.2)';
+                    badge.style.color = '#34d399';
+                } else {
+                    badge.textContent = 'បានបិទ';
+                    badge.style.background = 'rgba(107, 114, 128, 0.2)';
+                    badge.style.color = '#9ca3af';
+                }
+            }
+
+            // Allow empty referer toggle
+            const toggleEmpty = document.getElementById('toggleAllowEmptyReferer');
+            if (toggleEmpty) toggleEmpty.checked = allowEmpty;
+
+            // Server domain
+            const sDomainText = document.getElementById('serverSelfDomainText');
+            if (sDomainText) sDomainText.textContent = currentSecuritySettings.server_domain || window.location.hostname;
+
+            // Domain count badge
+            const countBadge = document.getElementById('allowedDomainsCount');
+            if (countBadge) countBadge.textContent = `${domains.length} Domain`;
+
+            // Domains list
+            const listEl = document.getElementById('allowedDomainsList');
+            if (listEl) {
+                if (domains.length === 0) {
+                    listEl.innerHTML = '<span style="color: var(--tg-theme-hint-color); font-size: 12px; font-style: italic;">មិនទាន់មាន Domain ខាងក្រៅនៅឡើយទេ។ (វាយ Domain ខាងលើរួចចុច + បន្ថែម)</span>';
+                } else {
+                    listEl.innerHTML = domains.map(d => `
+                        <div class="domain-chip">
+                            <i class="fa-solid fa-globe" style="font-size: 12px; color: #818cf8;"></i>
+                            <span>${escapeHtml(d)}</span>
+                            <button class="btn-del-domain" onclick="removeAllowedDomain('${escapeHtml(d)}')" title="លុប Domain នេះ">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        async function saveSecuritySettings(updatedData, successMsg = 'រក្សាទុកការកំណត់ជោគជ័យ!') {
+            try {
+                const res = await fetch('/api/security/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    currentSecuritySettings = result.settings;
+                    renderSecurityUI();
+                    showToast(successMsg, 'fa-circle-check', '#10b981');
+                } else {
+                    showToast('មានបញ្ហា៖ ' + (result.error || 'បរាជ័យ'), 'fa-circle-exclamation', '#ef4444');
+                }
+            } catch (err) {
+                console.error('Error saving security settings:', err);
+                showToast('មិនអាចរក្សាទុកការកំណត់បានទេ', 'fa-circle-exclamation', '#ef4444');
+            }
+        }
+
+        function toggleHotlinkSwitch(checked) {
+            const msg = checked ? 'បានបើកមុខងារការពារ Link Video!' : 'បានបិទមុខងារការពារ Link Video!';
+            saveSecuritySettings({ hotlink_protection_enabled: checked }, msg);
+        }
+
+        function toggleEmptyRefererSwitch(checked) {
+            const msg = checked ? 'បានអនុញ្ញាតឱ្យបើក Link ផ្ទាល់!' : 'បានបិទការបើក Link ផ្ទាល់!';
+            saveSecuritySettings({ allow_empty_referer: checked }, msg);
+        }
+
+        function addAllowedDomain() {
+            const input = document.getElementById('newDomainInput');
+            let val = input.value.trim().toLowerCase();
+            if (!val) {
+                showToast('សូមបញ្ចូលឈ្មោះ Domain!', 'fa-circle-exclamation', '#f59e0b');
+                return;
+            }
+            if (val.includes('://')) {
+                val = val.split('://')[1];
+            }
+            val = val.split('/')[0].split(':')[0].trim();
+
+            if (!val) {
+                showToast('ឈ្មោះ Domain មិនត្រឹមត្រូវ!', 'fa-circle-exclamation', '#ef4444');
+                return;
+            }
+
+            const current = currentSecuritySettings.allowed_domains || [];
+            if (current.includes(val)) {
+                showToast('Domain នេះមានក្នុងបញ្ជីរួចហើយ!', 'fa-circle-exclamation', '#f59e0b');
+                return;
+            }
+
+            const updatedDomains = [...current, val];
+            saveSecuritySettings({ allowed_domains: updatedDomains }, `បានបន្ថែម Domain: ${val}`);
+            input.value = '';
+        }
+
+        function removeAllowedDomain(domainToRemove) {
+            const current = currentSecuritySettings.allowed_domains || [];
+            const updatedDomains = current.filter(d => d !== domainToRemove);
+            saveSecuritySettings({ allowed_domains: updatedDomains }, `បានលុប Domain: ${domainToRemove}`);
+        }
+    </script>
+</body>
+</html>

@@ -121,6 +121,26 @@ curl -sSL -O https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/s
 
 ---
 
+## ជំហានទី ៦៖ របៀបបើក និងប្រើប្រាស់ Telegram Mini App គ្រប់គ្រងរឿង 🎬
+
+ឥឡូវនេះ បងអាចរៀបចំកាតាឡុករឿង, បង្កើតរឿងភាគ/រឿងដុំ, បញ្ចូលភាគ, និង Copy Link ឬ Post បានយ៉ាងងាយស្រួលដោយផ្ទាល់លើ Telegram Mini App!
+
+### ៦.១ បើក Mini App ក្នុង Telegram
+1. ចូលទៅ Chat ជាមួយ Bot របស់អ្នក រួចផ្ញើពាក្យ `/start` ឬ `/app`
+2. ចុចលើប៊ូតុង **« 🎬 បើកគ្រប់គ្រងរឿង (Mini App) »** នោះផ្ទាំង Mini App ដ៏ទំនើបនឹងបើកឡើងភ្លាមៗលើ Telegram!
+3. ឬអាចចូលមើលតាម Browser ដោយផ្ទាល់តាម Link: `https://yourdomain.com/app`
+
+### ៦.២ កំណត់ប៊ូតុង Menu ជាប់រហូតលើ Telegram (Persistent Menu Button)
+ដើម្បីឱ្យមានប៊ូតុង Menu «🎬 គ្រប់គ្រងរឿង» នៅជ្រុងខាងក្រោមឆ្វេងដៃនៃផ្ទាំង Chat របស់ Bot ជានិច្ច៖
+1. ចូលទៅកាន់ Telegram ស្វែងរក Bot **[@BotFather](https://t.me/BotFather)**
+2. ផ្ញើពាក្យ `/setmenubutton`
+3. ជ្រើសរើស Bot របស់អ្នក
+4. ផ្ញើតំណភ្ជាប់ Mini App របស់អ្នក: `https://yourdomain.com/app` (ឧ. `https://stream.nexkh.top/app`)
+5. ដាក់ឈ្មោះប៊ូតុង: `🎬 គ្រប់គ្រងរឿង`
+6. រួចរាល់! ពេលនេះ Bot របស់អ្នកមានប៊ូតុង Mini App ជាប់រហូត។
+
+---
+
 ## 🛠 ការគ្រប់គ្រង និងថែទាំ Server (Useful Commands)
 
 * **ពិនិត្យមើលដំណើរការ Bot (Status):**
@@ -139,3 +159,16 @@ curl -sSL -O https://raw.githubusercontent.com/sensoky25/tg-stream-player/main/s
   ```bash
   journalctl -u tgstream -f
   ```
+* **បើកដំណើរការ Nginx Video Slice Cache (ការពារ Rate Limit & Slow Video):**
+  ```bash
+  cd /root/tg-stream-player && git pull && bash enable_nginx_cache.sh
+  ```
+* **ពិនិត្យទំហំ Cache វីដេអូដែលបានរក្សាទុកលើ SSD VPS:**
+  ```bash
+  du -sh /var/cache/nginx/tgstream
+  ```
+* **សម្អាត Cache វីដេអូចោល (បើតម្រូវការ):**
+  ```bash
+  rm -rf /var/cache/nginx/tgstream/* && systemctl reload nginx
+  ```
+

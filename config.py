@@ -40,6 +40,12 @@ HOST = os.getenv("HOST", "0.0.0.0")
 # FQDN (Fully Qualified Domain Name or Base URL)
 FQDN = os.getenv("FQDN", f"http://localhost:{PORT}").rstrip("/")
 
+# Hotlink Protection / Anti-Leech Settings (Fallback defaults from .env)
+HOTLINK_PROTECTION = os.getenv("HOTLINK_PROTECTION", "false").strip().lower() in ("true", "1", "yes")
+ALLOWED_DOMAINS_RAW = os.getenv("ALLOWED_DOMAINS", "").strip()
+ALLOWED_DOMAINS = [d.strip().lower() for d in ALLOWED_DOMAINS_RAW.split(",") if d.strip()]
+ALLOW_EMPTY_REFERER = os.getenv("ALLOW_EMPTY_REFERER", "true").strip().lower() in ("true", "1", "yes")
+
 SESSION_NAME = os.getenv("SESSION_NAME", "tg_stream_bot")
 
 def validate_config():

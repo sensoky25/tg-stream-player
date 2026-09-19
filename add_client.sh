@@ -116,8 +116,25 @@ systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 
-# 7. Configure Nginx for this client's domain
-echo "🌐 កំណត់ Nginx Reverse Proxy សម្រាប់ ${INPUT_DOMAIN} (Port ${PORT})..."
+# 7. Configure Nginx for this client's domain with SSD Slice Cache
+echo "🌐 កំណត់ Nginx Reverse Proxy & SSD Slice Cache សម្រាប់ ${INPUT_DOMAIN} (Port ${PORT})..."
+
+# Ensure Cache Directory & Global Config exist
+mkdir -p /var/cache/nginx/tgstream
+chown -R www-data:www-data /var/cache/nginx/tgstream 2>/dev/null || true
+chmod -R 755 /var/cache/nginx/tgstream 2>/dev/null || true
+
+if [ ! -f /etc/nginx/conf.d/tg_stream_cache.conf ]; then
+    cat << 'EOF' > /etc/nginx/conf.d/tg_stream_cache.conf
+proxy_cache_path /var/cache/nginx/tgstream 
+    levels=1:2 
+    keys_zone=tg_stream_cache:50m 
+    max_size=20g 
+    inactive=14d 
+    use_temp_path=off;
+EOF
+fi
+
 cat << EOF > "/etc/nginx/sites-available/${INPUT_DOMAIN}"
 server {
     listen 80;
@@ -126,6 +143,47 @@ server {
 
     client_max_body_size 0;
 
+    # 🎥 High-Speed Video Byte-Range Slice Cache (Anti-FloodWait & High Concurrent Stream)
+    location /stream/ {
+        slice 2m;
+
+        proxy_pass http://127.0.0.1:${PORT};
+        proxy_http_version 1.1;
+
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+
+        proxy_set_header Range \$slice_range;
+
+        proxy_cache tg_stream_cache;
+        proxy_cache_key \$uri\$slice_range;
+        proxy_cache_valid 200 206 14d;
+
+        proxy_ignore_headers X-Accel-Buffering Expires Cache-Control Set-Cookie;
+        proxy_hide_header X-Accel-Buffering;
+
+        proxy_cache_lock on;
+        proxy_cache_lock_timeout 60s;
+        proxy_cache_lock_age 60s;
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+        proxy_cache_revalidate on;
+
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+
+        # CORS Headers
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Range, Origin, Content-Type, Accept" always;
+        add_header Access-Control-Expose-Headers "Content-Range, Content-Length, Accept-Ranges" always;
+
+        # Cache Hit/Miss Inspection Header
+        add_header X-Cache-Status \$upstream_cache_status always;
+    }
+
+    # 📱 Web Player, Mini App Dashboard & REST APIs (No Caching)
     location / {
         proxy_pass http://127.0.0.1:${PORT};
         proxy_http_version 1.1;

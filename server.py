@@ -230,14 +230,14 @@ def check_hotlink_access(request: web.Request):
 
     # Direct Link / Empty Referer
     if not req_domains:
-        if sec_fetch_site == "cross-site":
-            return False, "", "cross_site_hidden_referer"
-
         allow_empty = sec.get("allow_empty_referer", True)
         if allow_empty:
             return True, "*", "empty_referer_allowed"
-        else:
-            return False, "", "empty_referer_forbidden"
+
+        if sec_fetch_site == "cross-site":
+            return False, "", "cross_site_hidden_referer"
+
+        return False, "", "empty_referer_forbidden"
 
     # Check if request comes from self / auto-allowed
     for d in req_domains:
@@ -536,7 +536,13 @@ async def handle_stream(request: web.Request):
     # Stream chunks from Telegram MTProto
     bytes_left = content_length
     try:
-        async for chunk in tg_client.iter_download(message.media, offset=start):
+        # Request 512KB chunks (MAX_CHUNK_SIZE) from Telegram MTProto for 4-8x faster throughput
+        async for chunk in tg_client.iter_download(
+            message.media,
+            offset=start,
+            chunk_size=524288,
+            request_size=524288
+        ):
             if not chunk:
                 break
             

@@ -161,9 +161,15 @@ server {
         proxy_ignore_headers X-Accel-Buffering Expires Cache-Control Set-Cookie;
         proxy_hide_header X-Accel-Buffering;
 
+        # Hide backend CORS headers to prevent duplicate comma-separated headers in browser
+        proxy_hide_header Access-Control-Allow-Origin;
+        proxy_hide_header Access-Control-Allow-Methods;
+        proxy_hide_header Access-Control-Allow-Headers;
+        proxy_hide_header Access-Control-Expose-Headers;
+
         proxy_cache_lock on;
-        proxy_cache_lock_timeout 60s;
-        proxy_cache_lock_age 60s;
+        proxy_cache_lock_timeout 10s;
+        proxy_cache_lock_age 10s;
         proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
         proxy_cache_revalidate on;
 
